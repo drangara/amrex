@@ -33,6 +33,7 @@ private:
     amrex::Vector<amrex::DistributionMapping> dmap;
     amrex::Vector<std::unique_ptr<amrex::EBFArrayBoxFactory> > factory;
     amrex::Vector<amrex::MultiFab> phi;
+    amrex::Vector<amrex::MultiFab> phieb;
     amrex::Vector<amrex::MultiFab> rhs;
     amrex::Vector<amrex::MultiFab> acoef;
     amrex::Vector<amrex::Array<amrex::MultiFab,AMREX_SPACEDIM> > bcoef;

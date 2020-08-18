@@ -37,6 +37,7 @@ PoiseuilleTest::compute_gradient ()
     {
         const Box& bx = mfi.fabbox();
         Array4<Real> const& phi_arr = phi[ilev].array(mfi);
+        Array4<Real> const& phi_eb_arr = phieb[ilev].array(mfi);
 
         Array4<Real const> const& fcx   = (factory[ilev]->getFaceCent())[0]->const_array(mfi);
         Array4<Real const> const& fcy   = (factory[ilev]->getFaceCent())[1]->const_array(mfi);
@@ -56,7 +57,7 @@ PoiseuilleTest::compute_gradient ()
             Real phi_x_on_x_face = 
                grad_x_of_phi_on_centroids(i, j, k, n, 
                                           phi_arr,
-                                          phi_arr, // phi_eb_arr, <-- SHOULD BE PHI_EB_ARR
+                                          phi_eb_arr,
                                           flag,
                                           ccent, bcent, 
                                           apx, apy, 
@@ -106,6 +107,7 @@ PoiseuilleTest::initData ()
     dmap.resize(nlevels);
     factory.resize(nlevels);
     phi.resize(nlevels);
+    phieb.resize(nlevels);
     rhs.resize(nlevels);
     acoef.resize(nlevels);
     bcoef.resize(nlevels);
@@ -120,6 +122,7 @@ PoiseuilleTest::initData ()
                                                    {2,2,2}, EBSupport::full));
 
         phi[ilev].define(grids[ilev], dmap[ilev], 1, 1, MFInfo(), *factory[ilev]);
+        phieb[ilev].define(grids[ilev], dmap[ilev], 1, 1, MFInfo(), *factory[ilev]);
         rhs[ilev].define(grids[ilev], dmap[ilev], 1, 0, MFInfo(), *factory[ilev]);
         acoef[ilev].define(grids[ilev], dmap[ilev], 1, 0, MFInfo(), *factory[ilev]);
         for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
@@ -128,6 +131,7 @@ PoiseuilleTest::initData ()
         }
 
         phi[ilev].setVal(0.0);
+        phieb[ilev].setVal(0.0);
         rhs[ilev].setVal(0.0);
         acoef[ilev].setVal(1.0);
         for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
