@@ -1,6 +1,6 @@
 
 #include <AMReX.H>
-#include "MyTest.H"
+#include "PoiseuilleTest.H"
 
 int main (int argc, char* argv[])
 {
@@ -8,15 +8,9 @@ int main (int argc, char* argv[])
 
     {
         BL_PROFILE("main");
-        MyTest mytest;
+        PoiseuilleTest mytest;
 
         mytest.compute_gradient();
-        mytest.writePlotfile();
-
-//      for (int i = 0; i < 1; ++i) {
-//          mytest.solve();
-//          mytest.writePlotfile();
-//      }
     }
 
     amrex::Finalize();
