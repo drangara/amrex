@@ -63,8 +63,8 @@ PoiseuilleTest::compute_gradient ()
                                           apx, apy, 
                                           yloc_on_xface,
                                           is_eb_dirichlet, is_eb_inhomog);
-           amrex::Print() << "centroid(" << i << ", " << j <<"): " << ccent(i,j,k,0) << std::endl;
-           amrex::Print() << "phi_x_on_x_face(" << i << ", " << j <<"): " << phi_x_on_x_face << std::endl << std::endl;
+           amrex::Print() << "centroid(" << i << "," << j <<"): " << ccent(i,j,k,0) << std::endl;
+           amrex::Print() << "phi_x_on_x_face(" << i << "," << j <<"): " << phi_x_on_x_face << std::endl << std::endl;
         });
     }
 }
@@ -144,11 +144,13 @@ PoiseuilleTest::initData ()
         {
             const Box& bx = mfi.fabbox();
             Array4<Real> const& fab = phi[ilev].array(mfi);
+            Array4<Real const> const& fcy   = (factory[ilev]->getFaceCent())[1]->const_array(mfi);
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
-                Real rx = (i+0.5)*dx[0];
-                fab(i,j,k) = rx*(1.-rx);
+                Real rx = (i+0.5 + fcy(i,j,k))*dx[0];
+                fab(i,j,k) = (rx-0.225)*(1.-(rx-0.225));
+                amrex::Print() << "fab(" << i << "," << j << "): " << fab(i,j,k) << std::endl;
             });
         }
     }
