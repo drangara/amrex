@@ -23,8 +23,7 @@ private:
 
     int max_level = 0;
     int ref_ratio = 2;
-    int n_cell_x = 14;
-    int n_cell_y = 1;
+    int n_cell = 14;
     int max_grid_size = 64;
     int max_coarsening_level = 0;
     

@@ -66,7 +66,7 @@ MyTest::initializeEB ()
 
 void
 PoiseuilleTest::initializeEB() {
-   EB2::BoxIF box({AMREX_D_DECL(0.225, -10.0, 0.0)}, {AMREX_D_DECL(1.225, 10.0, 0.0)}, true);
+   EB2::BoxIF box({AMREX_D_DECL(0.225, -100.0, 0.0)}, {AMREX_D_DECL(1.225, 100.0, 0.0)}, true);
    auto gshop = EB2::makeShop(box);
    EB2::Build(gshop, geom.back(), max_level, max_level+max_coarsening_level);
 }

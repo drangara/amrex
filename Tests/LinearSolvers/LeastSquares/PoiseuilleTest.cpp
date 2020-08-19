@@ -53,6 +53,8 @@ PoiseuilleTest::compute_gradient ()
         amrex::ParallelFor(bx, ncomp, 
         [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
         {
+            const auto dx = geom[ilev].CellSizeArray();
+            amrex::Print() << "phi(" << i << "," << j << "): " << phi_arr(i,j,k) << std::endl;
             Real yloc_on_xface = fcx(i,j,k);
             Real phi_x_on_x_face = 
                grad_x_of_phi_on_centroids(i, j, k, n, 
@@ -62,9 +64,8 @@ PoiseuilleTest::compute_gradient ()
                                           ccent, bcent, 
                                           apx, apy, 
                                           yloc_on_xface,
-                                          is_eb_dirichlet, is_eb_inhomog);
-           amrex::Print() << "centroid(" << i << "," << j <<"): " << ccent(i,j,k,0) << std::endl;
-           amrex::Print() << "phi_x_on_x_face(" << i << "," << j <<"): " << phi_x_on_x_face << std::endl << std::endl;
+                                          is_eb_dirichlet, is_eb_inhomog) / dx[0];
+           amrex::Print() << "phi_x_on_x_face" << i << "," << j <<"): " << phi_x_on_x_face << std::endl;
         });
     }
 }
@@ -82,10 +83,10 @@ PoiseuilleTest::initGrids ()
     geom.resize(nlevels);
     grids.resize(nlevels);
 
-    RealBox rb({AMREX_D_DECL(0.,0.,0.)}, {AMREX_D_DECL(1.4,1.0,0.)});
+    RealBox rb({AMREX_D_DECL(0.,0.,0.)}, {AMREX_D_DECL(1.4,14.0,0.)});
     std::array<int,AMREX_SPACEDIM> isperiodic{AMREX_D_DECL(0,1,0)};
     Geometry::Setup(&rb, 0, isperiodic.data());
-    Box domain0(IntVect{AMREX_D_DECL(0,0,0)}, IntVect{AMREX_D_DECL(n_cell_x-1,n_cell_y-1,n_cell-1)});
+    Box domain0(IntVect{AMREX_D_DECL(0,0,0)}, IntVect{AMREX_D_DECL(n_cell-1,n_cell-1,n_cell-1)});
     Box domain = domain0;
     for (int ilev = 0; ilev < nlevels; ++ilev)
     {
@@ -150,7 +151,6 @@ PoiseuilleTest::initData ()
             {
                 Real rx = (i+0.5 + fcy(i,j,k))*dx[0];
                 fab(i,j,k) = (rx-0.225)*(1.-(rx-0.225));
-                amrex::Print() << "fab(" << i << "," << j << "): " << fab(i,j,k) << std::endl;
             });
         }
     }
