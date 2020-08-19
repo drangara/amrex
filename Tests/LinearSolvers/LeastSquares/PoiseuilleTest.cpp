@@ -46,6 +46,7 @@ PoiseuilleTest::compute_gradient ()
         Array4<Real const> const& bcent = (factory[ilev]->getBndryCent()).array(mfi);
         Array4<Real const> const& apx   = (factory[ilev]->getAreaFrac())[0]->const_array(mfi);
         Array4<Real const> const& apy   = (factory[ilev]->getAreaFrac())[1]->const_array(mfi);
+        Array4<Real const> const& norm  = (factory[ilev]->getBndryNormal()).array(mfi);
 
         const FabArray<EBCellFlagFab>* flags = &(factory[ilev]->getMultiEBCellFlagFab());
         Array4<EBCellFlag const> const& flag = flags->const_array(mfi);
@@ -56,6 +57,9 @@ PoiseuilleTest::compute_gradient ()
             const auto dx = geom[ilev].CellSizeArray();
             amrex::Print() << "phi(" << i << "," << j << "): " << phi_arr(i,j,k) << std::endl;
             Real yloc_on_xface = fcx(i,j,k);
+            Real xloc_on_yface = fcy(i,j,k);
+            Real nx = norm(i,j,k,0);
+            Real ny = norm(i,j,k,1);
             Real phi_x_on_x_face = 
                grad_x_of_phi_on_centroids(i, j, k, n, 
                                           phi_arr,
@@ -65,7 +69,29 @@ PoiseuilleTest::compute_gradient ()
                                           apx, apy, 
                                           yloc_on_xface,
                                           is_eb_dirichlet, is_eb_inhomog) / dx[0];
-           amrex::Print() << "phi_x_on_x_face" << i << "," << j <<"): " << phi_x_on_x_face << std::endl;
+            Real phi_y_on_y_face = 
+               grad_y_of_phi_on_centroids(i, j, k, n, 
+                                          phi_arr,
+                                          phi_eb_arr,
+                                          flag,
+                                          ccent, bcent, 
+                                          apx, apy, 
+                                          xloc_on_yface,
+                                          is_eb_dirichlet, is_eb_inhomog) / dx[0];
+            Real phi_eb = 
+               grad_eb_of_phi_on_centroids(i, j, k, n, 
+                                          phi_arr,
+                                          phi_eb_arr,
+                                          flag,
+                                          ccent, bcent, 
+                                          nx, ny, 
+                                          is_eb_inhomog) / dx[0];
+           amrex::Print() << "phi_x_on_x_face / dx (" << i << "," << j <<"): " << phi_x_on_x_face << std::endl;
+           amrex::Print() << "phi_y_on_y_face / dx (" << i << "," << j <<"): " << phi_y_on_y_face << std::endl;
+           amrex::Print() << "phi_eb / dx (" << i << "," << j <<"): " << phi_eb << std::endl;
+           amrex::Print() << "normx (" << i << "," << j <<"): " << nx << std::endl;
+           amrex::Print() << "normy (" << i << "," << j <<"): " << ny << std::endl;
+           amrex::Print() << "centroid(" << i << "," << j <<"): " << ccent(i,j,k,0) << ", " << ccent(i,j,k,1) << std::endl << std::endl;
         });
     }
 }

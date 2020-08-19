@@ -445,7 +445,7 @@ Real grad_eb_of_phi_on_centroids(int i,int j,int k,int n,
                    Amatrix(a_ind,1) = x_off + ccent(ii,jj,k,0) - bcent(i,j,k,0);
                    Amatrix(a_ind,2) = y_off + ccent(ii,jj,k,1) - bcent(i,j,k,1);
                 }
-#if 1
+#if 0
                 if (i == ii and j == jj)
                 {
                    Amatrix(a_ind,0) *= 2.0;
@@ -460,7 +460,7 @@ Real grad_eb_of_phi_on_centroids(int i,int j,int k,int n,
                     Amatrix(a_ind+9,1) = x_off + bcent(ii,jj,k,0) - bcent(i,j,k,0);
                     Amatrix(a_ind+9,2) = y_off + bcent(ii,jj,k,1) - bcent(i,j,k,1);
 
-#if 1
+#if 0
                     if (i == ii and j == jj)
                         Amatrix(a_ind+9,0) *= 2.0;
 #endif
