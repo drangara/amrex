@@ -28,6 +28,7 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
     const MultiCutFab& bcent = my_factory.getBndryCent();
     const MultiCutFab& bnorm = my_factory.getBndryNormal();
     const auto&        flags = my_factory.getMultiEBCellFlagFab();
+    const auto& vfrac = my_factory.getVolFrac();
 
     MFItInfo mfi_info;
     if (Gpu::notInLaunchRegion()) mfi_info.EnableTiling().SetDynamic(true);
@@ -63,6 +64,7 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
             auto const& bc = bcent.array(mfi);
             auto const& bn = bnorm.array(mfi);
             auto const& fg = flagfab.array();
+            auto const& vf = vfrac.array(mfi);
 
             if (Gpu::inLaunchRegion())
             {
@@ -118,6 +120,8 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
                                                    { return y*y*z*z; });
                         intg(i,j,k,i_S_xyz  ) = q([] AMREX_GPU_DEVICE (Real x, Real y, Real z) noexcept
                                                    { return x*y*z; });
+                        intg(i,j,k,i_S_0  )   = q.eval([](Real /*x*/, Real /*y*/, Real /*z*/) noexcept
+                                                   { return 1; });
                     }
                 });
             }
@@ -178,6 +182,8 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
                                                    { return y*y*z*z; });
                         intg(i,j,k,i_S_xyz  ) = q.eval([](Real x, Real y, Real z) noexcept
                                                    { return x*y*z; });
+                        intg(i,j,k,i_S_0  )   = q.eval([](Real /*x*/, Real /*y*/, Real /*z*/) noexcept
+                                                   { return 1; });
                     }
                 }
             }
@@ -309,6 +315,8 @@ compute_surface_integrals (MultiFab& sintgmf, IntVect nghost)
                                                        { return y*z; });
                             sintg(i,j,k,i_B_xyz) = q([] AMREX_GPU_DEVICE (Real x, Real y, Real z) noexcept
                                                        { return x*y*z; });
+                            sintg(i,j,k,i_B_0)   = q([] AMREX_GPU_DEVICE (Real /*x*/, Real /*y*/, Real /*z*/) noexcept
+                                                       { return 1; });
                         }
                     }
                 });
@@ -374,6 +382,8 @@ compute_surface_integrals (MultiFab& sintgmf, IntVect nghost)
                                                        { return y*z; });
                             sintg(i,j,k,i_B_xyz) = q.eval([](Real x, Real y, Real z) noexcept
                                                        { return x*y*z; });
+                            sintg(i,j,k,i_B_0)   = q([] AMREX_GPU_DEVICE (Real /*x*/, Real /*y*/, Real /*z*/) noexcept
+                                                       { return 1; });
                         }
                     }
                 }
