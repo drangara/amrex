@@ -6882,7 +6882,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
 
     if (!msk(i,j,k)) {
         rhs(i,j,k) += fac_eb*(
-            eb_vel_dot_n(i-1,j-1,k  )*(           singt(i-1,j-1,k  ,i_B_0)
+            eb_vel_dot_n(i-1,j-1,k  )*(           sintg(i-1,j-1,k  ,i_B_0)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_x)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_y)
                                         +Real(4.)*sintg(i-1,j-1,k  ,i_B_x_y)
