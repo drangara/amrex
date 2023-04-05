@@ -200,6 +200,7 @@ private:
     bool m_surface_integral_built = false;
     bool m_build_surface_integral = false;
     Vector<std::unique_ptr<MultiFab> > m_eb_vel_dot_n;
+    Vector<std::unique_ptr<MultiFab> > m_eb_vel_vec;
 #endif
 
     bool m_use_gauss_seidel     = true;

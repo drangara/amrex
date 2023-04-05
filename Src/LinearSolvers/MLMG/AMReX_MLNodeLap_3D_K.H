@@ -2075,12 +2075,12 @@ void mlndlap_interpadd_ha (int i, int j, int k, Array4<Real> const& fine,
 //
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void mlndlap_divu (int i, int j, int k, Array4<Real> const& rhs, Array4<Real const> const& vel,
-                   Array4<int const> const& msk,
-                   GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
-                   Box const& nodal_domain,
-                   GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
-                   GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
+void mlndlap_divu_cell (int i, int j, int k, Real& rhs_val, Array4<Real const> const& vel,
+                        Array4<int const> const& msk,
+                        GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
+                        Box const& nodal_domain,
+                        GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
+                        GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
 {
     Real facx = Real(0.25)*dxinv[0];
     Real facy = Real(0.25)*dxinv[1];
@@ -2090,7 +2090,7 @@ void mlndlap_divu (int i, int j, int k, Array4<Real> const& rhs, Array4<Real con
     const auto domhi = amrex::ubound(nodal_domain);
 
     if (msk(i,j,k)) {
-        rhs(i,j,k) = Real(0.0);
+        rhs_val = Real(0.0);
     } else {
 
         Real zero_ilo = Real(1.0);
@@ -2115,7 +2115,7 @@ void mlndlap_divu (int i, int j, int k, Array4<Real> const& rhs, Array4<Real con
         if ((bchi[2] == LinOpBCType::Neumann || bchi[2] == LinOpBCType::inflow)
             && k == domhi.z) zero_khi = Real(0.0);
 
-        rhs(i,j,k) = facx*(-vel(i-1,j-1,k-1,0)*zero_jlo*zero_klo+vel(i,j-1,k-1,0)*zero_jlo*zero_klo
+        rhs_val    = facx*(-vel(i-1,j-1,k-1,0)*zero_jlo*zero_klo+vel(i,j-1,k-1,0)*zero_jlo*zero_klo
                            -vel(i-1,j  ,k-1,0)*zero_jhi*zero_klo+vel(i,j  ,k-1,0)*zero_jhi*zero_klo
                            -vel(i-1,j-1,k  ,0)*zero_jlo*zero_khi+vel(i,j-1,k  ,0)*zero_jlo*zero_khi
                            -vel(i-1,j  ,k  ,0)*zero_jhi*zero_khi+vel(i,j  ,k  ,0)*zero_jhi*zero_khi)
@@ -2130,6 +2130,19 @@ void mlndlap_divu (int i, int j, int k, Array4<Real> const& rhs, Array4<Real con
                            +vel(i-1,j-1,k  ,2)*zero_ilo*zero_jlo+vel(i,j-1,k  ,2)*zero_ihi*zero_jlo
                            +vel(i-1,j  ,k  ,2)*zero_ilo*zero_jhi+vel(i,j  ,k  ,2)*zero_ihi*zero_jhi);
     }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void mlndlap_divu (int i, int j, int k, Array4<Real> const& rhs, Array4<Real const> const& vel,
+                   Array4<int const> const& msk,
+                   GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
+                   Box const& nodal_domain,
+                   GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
+                   GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
+{
+    Real val;
+    mlndlap_divu_cell(i,j,k,val,vel,msk,dxinv,nodal_domain,bclo,bchi);
+    rhs(i,j,k) = val;
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -6663,12 +6676,12 @@ void mlndlap_set_stencil_eb (int i, int j, int k, Array4<Real> const& sten,
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real const> const& vel,
-                      Array4<Real const> const& vfrac, Array4<Real const> const& intg,
-                      Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
-                      Box const& nodal_domain,
-                      GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
-                      GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
+void mlndlap_divu_eb_cell (int i, int j, int k, Real& rhs_val, Array4<Real const> const& vel,
+                           Array4<Real const> const& vfrac, Array4<Real const> const& intg,
+                           Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
+                           Box const& nodal_domain,
+                           GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
+                           GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
 {
     Real facx = Real(0.25)*dxinv[0];
     Real facy = Real(0.25)*dxinv[1];
@@ -6701,7 +6714,7 @@ void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real 
         if ((bchi[2] == LinOpBCType::Neumann || bchi[2] == LinOpBCType::inflow)
             && k == domhi.z) zero_khi = Real(0.0);
 
-        rhs(i,j,k) = facx*(
+        rhs_val = facx*(
             vel(i-1,j-1,k  ,0)*(    -vfrac(i-1,j-1,k  )
                                -Real(2.)*intg(i-1,j-1,k  ,i_S_y)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_z)
@@ -6801,7 +6814,58 @@ void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real 
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_y)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_x_y))*zero_ihi*zero_jhi );
     } else {
-        rhs(i,j,k) = Real(0.);
+        rhs_val = Real(0.);
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real const> const& vel,
+                      Array4<Real const> const& vfrac, Array4<Real const> const& intg,
+                      Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
+                      Box const& nodal_domain,
+                      GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
+                      GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
+{
+    mlndlap_divu_eb_cell(i,j,k,rhs(i,j,k),vel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void add_eb_flow_contrib_new (int i, int j, int k, Array4<Real> const& rhs,
+                              Array4<int const> const& msk, Array4<Real const> const& ebvel,
+                              Array4<Real const> const& vfrac,
+                              Array4<Real const> const& intg,
+                              Array4<EBCellFlag const> const& flag,
+                              GpuArray<Real,AMREX_SPACEDIM> const& dxinv, Box const& nodal_domain,
+                              GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
+                              GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
+{
+    if (!msk(i,j,k)) {
+
+        bool node_covered =
+            (flag(i,j,k  ).isCovered() || flag(i-1,j,k  ).isCovered() || flag(i,j-1,k  ).isCovered() || flag(i-1,j-1,k  ).isCovered() ||
+             flag(i,j,k-1).isCovered() || flag(i-1,j,k-1).isCovered() || flag(i,j-1,k-1).isCovered() || flag(i-1,j-1,k-1).isCovered());
+        bool node_regular =
+            (flag(i,j,k  ).isRegular() && flag(i-1,j,k  ).isRegular() && flag(i,j-1,k  ).isRegular() && flag(i-1,j-1,k  ).isRegular() &&
+             flag(i,j,k-1).isRegular() && flag(i-1,j,k-1).isRegular() && flag(i,j-1,k-1).isRegular() && flag(i-1,j-1,k-1).isRegular());
+
+        if (node_covered) {
+
+            Real val;
+            mlndlap_divu_eb_cell(i,j,k,val,ebvel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
+            Real sfc_integral = -val;
+            rhs(i,j,k) += sfc_integral;
+
+        } else if (!node_regular) {
+
+            Real val_cut;
+            mlndlap_divu_eb_cell(i,j,k,val_cut,ebvel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
+
+            Real val_full;
+            mlndlap_divu_cell(i,j,k,val_full,ebvel,msk,dxinv,nodal_domain,bclo,bchi);
+
+            Real sfc_integral = val_full - val_cut;
+            rhs(i,j,k) += sfc_integral;
+        }
     }
 }
 

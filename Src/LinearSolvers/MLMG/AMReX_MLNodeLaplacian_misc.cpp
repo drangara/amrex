@@ -1037,15 +1037,46 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
                         mlndlap_divu_eb(i,j,k,rhsarr,velarr,vfracarr,intgarr,dmskarr,dxinvarr,nddom,lobc,hibc);
                     });
 
+#if (AMREX_SPACEDIM == 3)
+                    if (m_eb_vel_vec[ilev]) {
+                        auto const& flagarr = flags->const_array(mfi);
+                        Array4<Real      > const& ebvelarr = m_eb_vel_vec[ilev]->array(mfi);
+                        AMREX_HOST_DEVICE_FOR_3D(bx, i, j, k,
+                        {
+                            if (flagarr(i,j,k).isCovered()) {
+                                ebvelarr(i,j,k,0) = 0.0;
+                                ebvelarr(i,j,k,1) = 0.0;
+                                ebvelarr(i,j,k,2) = 0.0;
+                            } else if (flagarr(i,j,k).isRegular()) {
+                                ebvelarr(i,j,k,0) = velarr(i,j,k,0);
+                                ebvelarr(i,j,k,1) = velarr(i,j,k,1);
+                                ebvelarr(i,j,k,2) = velarr(i,j,k,2);
+                            }
+                        });
+                    }
+#endif
+
                     if (m_eb_vel_dot_n[ilev]) {
                         Array4<Real const> const& eb_vel_dot_n = m_eb_vel_dot_n[ilev]->const_array(mfi);
+#if (AMREX_SPACEDIM == 2)
                         Array4<Real const> const& bareaarr = barea->const_array(mfi);
                         Array4<Real const> const& sintgarr = sintg->const_array(mfi);
+#else
+                        Array4<Real const> const& vfracarr = vfrac->const_array(mfi);
+                        Array4<Real const> const& intgarr = intg->const_array(mfi);
+                        Array4<Real const> const& ebvelarr = m_eb_vel_vec[ilev]->const_array(mfi);
+                        auto const& flagarr = flags->const_array(mfi);
+#endif
 
                         AMREX_HOST_DEVICE_FOR_3D(bx, i, j, k,
                         {
+#if (AMREX_SPACEDIM == 2)
                             add_eb_flow_contribution(i,j,k,rhsarr,dmskarr,
                                 dxinvarr,bareaarr,sintgarr,eb_vel_dot_n);
+#else
+                            add_eb_flow_contrib_new(i,j,k,rhsarr,dmskarr,ebvelarr,
+                                                    vfracarr,intgarr,flagarr,dxinvarr,nddom,lobc,hibc);
+#endif
                         });
                     }
                 }
