@@ -118,7 +118,7 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
                                                    { return y*y*z*z; });
                         intg(i,j,k,i_S_xyz  ) = q([] AMREX_GPU_DEVICE (Real x, Real y, Real z) noexcept
                                                    { return x*y*z; });
-                        intg(i,j,k,i_S_1  )   = q([] AMREX_GPU_DEVICE (Real x, Real y, Real z) noexcept
+                        intg(i,j,k,i_S_1  )   = q([] AMREX_GPU_DEVICE (Real /*x*/, Real /*y*/, Real /*z*/) noexcept
                                                    { return 1; });
                     }
                 });
