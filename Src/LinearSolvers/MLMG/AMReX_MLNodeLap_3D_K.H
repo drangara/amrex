@@ -6468,159 +6468,159 @@ void mlndlap_set_connection (int i, int j, int k, Array4<Real> const& conn,
         for (int n = 0; n < n_conn; ++n) conn(i,j,k,n) = Real(1.);
     } else {
         // Scaled by 9
-        conn(i,j,k,i_c_xmym) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_xmym) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*(-intg(i,j,k,i_S_x ) - intg(i,j,k,i_S_y)
                        +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(9.)*( intg(i,j,k,i_S_x_y ) - intg(i,j,k,i_S_x2_y)
                      -intg(i,j,k,i_S_x_y2) + intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xmyb) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_xmyb) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*(-intg(i,j,k,i_S_x) + intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_y2))
             + Real(18.)*( intg(i,j,k,i_S_x_y2) - intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xmyp) =  Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_xmyp) =  Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*(-intg(i,j,k,i_S_x ) + intg(i,j,k,i_S_y)
                        +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(9.)*(-intg(i,j,k,i_S_x_y ) + intg(i,j,k,i_S_x2_y)
                      -intg(i,j,k,i_S_x_y2) + intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbym) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_xbym) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*(-intg(i,j,k,i_S_y) - intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(18.)*(intg(i,j,k,i_S_x2_y) - intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 36
-        conn(i,j,k,i_c_xbyb) = Real(2.25)*vol(i,j,k)
+        conn(i,j,k,i_c_xbyb) = Real(2.25)*intg(i,j,k,i_S_1)
             + Real(9.)*(-intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_y2))
             + Real(36.)*intg(i,j,k,i_S_x2_y2);
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbyp) =  Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_xbyp) =  Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*( intg(i,j,k,i_S_y) - intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(18.)*(-intg(i,j,k,i_S_x2_y) - intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xpym) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_xpym) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*( intg(i,j,k,i_S_x ) - intg(i,j,k,i_S_y)
                         +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(9.)*(-intg(i,j,k,i_S_x_y ) - intg(i,j,k,i_S_x2_y)
                      +intg(i,j,k,i_S_x_y2) + intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xpyb) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_xpyb) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*( intg(i,j,k,i_S_x) + intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_y2))
             + Real(18.)*(-intg(i,j,k,i_S_x_y2) - intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xpyp) =  Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_xpyp) =  Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*( intg(i,j,k,i_S_x ) + intg(i,j,k,i_S_y)
                         +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(9.)*( intg(i,j,k,i_S_x_y ) + intg(i,j,k,i_S_x2_y)
                       +intg(i,j,k,i_S_x_y2) + intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xmzm) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_xmzm) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*(-intg(i,j,k,i_S_x) - intg(i,j,k,i_S_z)
                        +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(intg(i,j,k,i_S_x_z) - intg(i,j,k,i_S_x2_z)
                      -intg(i,j,k,i_S_x_z2) + intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xmzb) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_xmzb) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*(-intg(i,j,k,i_S_x) + intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_z2))
             + Real(18.)*(intg(i,j,k,i_S_x_z2) - intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xmzp) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_xmzp) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*(-intg(i,j,k,i_S_x  ) + intg(i,j,k,i_S_z)
                        +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(-intg(i,j,k,i_S_x_z  ) + intg(i,j,k,i_S_x2_z)
                      -intg(i,j,k,i_S_x_z2) + intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbzm) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_xbzm) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*(-intg(i,j,k,i_S_z) - intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(18.)*(intg(i,j,k,i_S_x2_z) - intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbzb) = Real(2.25)*vol(i,j,k)
+        conn(i,j,k,i_c_xbzb) = Real(2.25)*intg(i,j,k,i_S_1)
             + Real(9.)*(-intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_z2))
             + Real(36.)*intg(i,j,k,i_S_x2_z2);
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbzp) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_xbzp) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*( intg(i,j,k,i_S_z) - intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(18.)*(-intg(i,j,k,i_S_x2_z) - intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xpzm) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_xpzm) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*( intg(i,j,k,i_S_x ) - intg(i,j,k,i_S_z)
                         +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(-intg(i,j,k,i_S_x_z ) - intg(i,j,k,i_S_x2_z)
                      +intg(i,j,k,i_S_x_z2) + intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xpzb) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_xpzb) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*( intg(i,j,k,i_S_x   ) + intg(i,j,k,i_S_x2   ) - intg(i,j,k,i_S_z2))
             + Real(18.)*(-intg(i,j,k,i_S_x_z2) - intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xpzp) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_xpzp) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*( intg(i,j,k,i_S_x ) + intg(i,j,k,i_S_z)
                         +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(9.)*( intg(i,j,k,i_S_x_z ) + intg(i,j,k,i_S_x2_z)
                       +intg(i,j,k,i_S_x_z2) + intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_ymzm) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_ymzm) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*(-intg(i,j,k,i_S_y) - intg(i,j,k,i_S_z)
                        +intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(intg(i,j,k,i_S_y_z) - intg(i,j,k,i_S_y2_z)
                      -intg(i,j,k,i_S_y_z2) + intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_ymzb) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_ymzb) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*(-intg(i,j,k,i_S_y) + intg(i,j,k,i_S_y2) - intg(i,j,k,i_S_z2))
             + Real(18.)*(intg(i,j,k,i_S_y_z2) - intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_ymzp) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_ymzp) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*(-intg(i,j,k,i_S_y ) + intg(i,j,k,i_S_z)
                        +intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(-intg(i,j,k,i_S_y_z ) + intg(i,j,k,i_S_y2_z)
                      -intg(i,j,k,i_S_y_z2) + intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_ybzm) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_ybzm) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*(-intg(i,j,k,i_S_z) - intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(18.)*(intg(i,j,k,i_S_y2_z) - intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 36
-        conn(i,j,k,i_c_ybzb) = Real(2.25)*vol(i,j,k)
+        conn(i,j,k,i_c_ybzb) = Real(2.25)*intg(i,j,k,i_S_1)
             + Real(9.)*(-intg(i,j,k,i_S_y2) - intg(i,j,k,i_S_z2))
                      + Real(36.)*intg(i,j,k,i_S_y2_z2);
 
         // Scaled by 18
-        conn(i,j,k,i_c_ybzp) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_ybzp) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*( intg(i,j,k,i_S_z) - intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(18.)*(-intg(i,j,k,i_S_y2_z) - intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_ypzm) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_ypzm) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*( intg(i,j,k,i_S_y ) - intg(i,j,k,i_S_z)
                         +intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(-intg(i,j,k,i_S_y_z ) - intg(i,j,k,i_S_y2_z)
                      +intg(i,j,k,i_S_y_z2) + intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_ypzb) = Real(1.125)*vol(i,j,k)
+        conn(i,j,k,i_c_ypzb) = Real(1.125)*intg(i,j,k,i_S_1)
             + Real(4.5)*( intg(i,j,k,i_S_y   ) + intg(i,j,k,i_S_y2) - intg(i,j,k,i_S_z2))
             + Real(18.)*(-intg(i,j,k,i_S_y_z2) - intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_ypzp) = Real(0.5625)*vol(i,j,k)
+        conn(i,j,k,i_c_ypzp) = Real(0.5625)*intg(i,j,k,i_S_1)
             + Real(2.25)*( intg(i,j,k,i_S_y ) + intg(i,j,k,i_S_z)
                         +intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(9.)*( intg(i,j,k,i_S_y_z ) + intg(i,j,k,i_S_y2_z)
