@@ -1041,7 +1041,7 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
                     if (m_eb_vel_vec[ilev]) {
                         auto const& flagarr = flags->const_array(mfi);
                         Array4<Real      > const& ebvelarr = m_eb_vel_vec[ilev]->array(mfi);
-                        AMREX_HOST_DEVICE_FOR_3D(bx, i, j, k,
+                        AMREX_HOST_DEVICE_FOR_3D(ccbx, i, j, k,
                         {
                             if (flagarr(i,j,k).isCovered()) {
                                 ebvelarr(i,j,k,0) = 0.0;
