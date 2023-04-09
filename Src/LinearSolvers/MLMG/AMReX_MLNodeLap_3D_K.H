@@ -6679,7 +6679,7 @@ void mlndlap_set_stencil_eb (int i, int j, int k, Array4<Real> const& sten,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void mlndlap_divu_eb_cell (int i, int j, int k, Real& rhs_val, Array4<Real const> const& vel,
-                           Array4<Real const> const& vfrac, Array4<Real const> const& intg,
+                           Array4<Real const> const& intg,
                            Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
                            Box const& nodal_domain,
                            GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
@@ -6828,7 +6828,7 @@ void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real 
                       GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
                       GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
 {
-    mlndlap_divu_eb_cell(i,j,k,rhs(i,j,k),vel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
+    mlndlap_divu_eb_cell(i,j,k,rhs(i,j,k),vel,intg,msk,dxinv,nodal_domain,bclo,bchi);
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -6846,26 +6846,35 @@ void add_eb_flow_contrib_new (int i, int j, int k, Array4<Real> const& rhs,
         bool node_covered =
             (flag(i,j,k  ).isCovered() || flag(i-1,j,k  ).isCovered() || flag(i,j-1,k  ).isCovered() || flag(i-1,j-1,k  ).isCovered() ||
              flag(i,j,k-1).isCovered() || flag(i-1,j,k-1).isCovered() || flag(i,j-1,k-1).isCovered() || flag(i-1,j-1,k-1).isCovered());
+        bool node_all_covered =
+            (flag(i,j,k  ).isCovered() && flag(i-1,j,k  ).isCovered() && flag(i,j-1,k  ).isCovered() && flag(i-1,j-1,k  ).isCovered() &&
+             flag(i,j,k-1).isCovered() && flag(i-1,j,k-1).isCovered() && flag(i,j-1,k-1).isCovered() && flag(i-1,j-1,k-1).isCovered());
         bool node_regular =
             (flag(i,j,k  ).isRegular() && flag(i-1,j,k  ).isRegular() && flag(i,j-1,k  ).isRegular() && flag(i-1,j-1,k  ).isRegular() &&
              flag(i,j,k-1).isRegular() && flag(i-1,j,k-1).isRegular() && flag(i,j-1,k-1).isRegular() && flag(i-1,j-1,k-1).isRegular());
+        bool any_regular =
+            (flag(i,j,k  ).isRegular() || flag(i-1,j,k  ).isRegular() || flag(i,j-1,k  ).isRegular() || flag(i-1,j-1,k  ).isRegular() ||
+             flag(i,j,k-1).isRegular() || flag(i-1,j,k-1).isRegular() || flag(i,j-1,k-1).isRegular() || flag(i-1,j-1,k-1).isRegular());
 
-        if (node_covered) {
+        Real sfc_integral;
 
-            Real val;
-            mlndlap_divu_eb_cell(i,j,k,val,ebvel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
-            Real sfc_integral = -val;
-            rhs(i,j,k) += sfc_integral;
-
-        } else if (!node_regular) {
+        if (!node_all_covered && !node_regular) {
 
             Real val_cut;
-            mlndlap_divu_eb_cell(i,j,k,val_cut,ebvel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
+            mlndlap_divu_eb_cell(i,j,k,val_cut,ebvel,intg,msk,dxinv,nodal_domain,bclo,bchi);
 
-            Real val_full;
-            mlndlap_divu_cell(i,j,k,val_full,ebvel,msk,dxinv,nodal_domain,bclo,bchi);
+            if (node_covered && !any_regular) {
 
-            Real sfc_integral = val_full - val_cut;
+                sfc_integral = -val_cut;
+
+            } else {
+
+                Real val_full;
+                mlndlap_divu_cell(i,j,k,val_full,ebvel,msk,dxinv,nodal_domain,bclo,bchi);
+
+                sfc_integral = val_full - val_cut;
+            }
+
             rhs(i,j,k) += sfc_integral;
         }
     }
