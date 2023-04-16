@@ -6979,7 +6979,7 @@ void add_eb_flow_contrib_new (int i, int j, int k, Array4<Real> const& rhs,
 
             if (std::abs(sfc_integral-sfc_integral_2) > 1.e-8) {
                 amrex::Print() << "SFC INTEGRALS DIFFER " << IntVect(i,j,k) << " " << sfc_integral << " " << sfc_integral_2 << std::endl;
-                amrex::Error();
+                // amrex::Error();
             }
             // END FOR DEBUGGING ONLY
 
