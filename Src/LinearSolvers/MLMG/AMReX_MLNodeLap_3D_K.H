@@ -6832,65 +6832,17 @@ void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real 
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void add_eb_flow_contrib_new (int i, int j, int k, Array4<Real> const& rhs,
-                              Array4<int const> const& msk, Array4<Real const> const& ebvel,
-                              Array4<Real const> const& vfrac,
-                              Array4<Real const> const& intg,
-                              Array4<EBCellFlag const> const& flag,
-                              GpuArray<Real,AMREX_SPACEDIM> const& dxinv, Box const& nodal_domain,
-                              GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
-                              GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
-{
-    if (!msk(i,j,k)) {
-
-        bool node_covered =
-            (flag(i,j,k  ).isCovered() || flag(i-1,j,k  ).isCovered() || flag(i,j-1,k  ).isCovered() || flag(i-1,j-1,k  ).isCovered() ||
-             flag(i,j,k-1).isCovered() || flag(i-1,j,k-1).isCovered() || flag(i,j-1,k-1).isCovered() || flag(i-1,j-1,k-1).isCovered());
-        bool node_all_covered =
-            (flag(i,j,k  ).isCovered() && flag(i-1,j,k  ).isCovered() && flag(i,j-1,k  ).isCovered() && flag(i-1,j-1,k  ).isCovered() &&
-             flag(i,j,k-1).isCovered() && flag(i-1,j,k-1).isCovered() && flag(i,j-1,k-1).isCovered() && flag(i-1,j-1,k-1).isCovered());
-        bool node_regular =
-            (flag(i,j,k  ).isRegular() && flag(i-1,j,k  ).isRegular() && flag(i,j-1,k  ).isRegular() && flag(i-1,j-1,k  ).isRegular() &&
-             flag(i,j,k-1).isRegular() && flag(i-1,j,k-1).isRegular() && flag(i,j-1,k-1).isRegular() && flag(i-1,j-1,k-1).isRegular());
-        bool any_regular =
-            (flag(i,j,k  ).isRegular() || flag(i-1,j,k  ).isRegular() || flag(i,j-1,k  ).isRegular() || flag(i-1,j-1,k  ).isRegular() ||
-             flag(i,j,k-1).isRegular() || flag(i-1,j,k-1).isRegular() || flag(i,j-1,k-1).isRegular() || flag(i-1,j-1,k-1).isRegular());
-
-        Real sfc_integral;
-
-        if (!node_all_covered && !node_regular) {
-
-            Real val_cut;
-            mlndlap_divu_eb_cell(i,j,k,val_cut,ebvel,intg,msk,dxinv,nodal_domain,bclo,bchi);
-
-            if (node_covered && !any_regular) {
-
-                sfc_integral = -val_cut;
-
-            } else {
-
-                Real val_full;
-                mlndlap_divu_cell(i,j,k,val_full,ebvel,msk,dxinv,nodal_domain,bclo,bchi);
-
-                sfc_integral = val_full - val_cut;
-            }
-
-            rhs(i,j,k) += sfc_integral;
-        }
-    }
-}
-
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
+void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
                       Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
                       Array4<Real const> const& bareaarr,
                       Array4<Real const> const& sintg,
                       Array4<Real const> const& eb_vel_dot_n) noexcept
 {
     Real fac_eb = Real(0.125) * dxinv[0];
+    sfc_integral = 0.;
 
     if (!msk(i,j,k)) {
-        rhs(i,j,k) += fac_eb*(
+        sfc_integral += fac_eb*(
             eb_vel_dot_n(i-1,j-1,k  )*(           sintg(i-1,j-1,k  ,i_B_1)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_x)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_y)
@@ -6955,6 +6907,84 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         -Real(4.)*sintg(i  ,j  ,k-1,i_B_y_z)
                                         -Real(4.)*sintg(i  ,j  ,k-1,i_B_x_z)
                                         +Real(8.)*sintg(i  ,j  ,k-1,i_B_xyz)));
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void add_eb_flow_contrib_new (int i, int j, int k, Array4<Real> const& rhs,
+                              Array4<int const> const& msk, Array4<Real const> const& ebvel,
+                              Array4<Real const> const& vfrac,
+                              Array4<Real const> const& intg,
+                              Array4<Real const> const& bareaarr,
+                              Array4<Real const> const& sintg,
+                              Array4<EBCellFlag const> const& flag,
+                              GpuArray<Real,AMREX_SPACEDIM> const& dxinv, Box const& nodal_domain,
+                              GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
+                              GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi,
+                              Array4<Real const> const& eb_vel_dot_n) noexcept
+{
+    if (!msk(i,j,k)) {
+
+        bool node_all_covered =
+            (flag(i,j,k  ).isCovered() && flag(i-1,j,k  ).isCovered() && flag(i,j-1,k  ).isCovered() && flag(i-1,j-1,k  ).isCovered() &&
+             flag(i,j,k-1).isCovered() && flag(i-1,j,k-1).isCovered() && flag(i,j-1,k-1).isCovered() && flag(i-1,j-1,k-1).isCovered());
+        bool node_regular =
+            (flag(i,j,k  ).isRegular() && flag(i-1,j,k  ).isRegular() && flag(i,j-1,k  ).isRegular() && flag(i-1,j-1,k  ).isRegular() &&
+             flag(i,j,k-1).isRegular() && flag(i-1,j,k-1).isRegular() && flag(i,j-1,k-1).isRegular() && flag(i-1,j-1,k-1).isRegular());
+
+        Real sfc_integral;
+
+        if (!node_all_covered && !node_regular) {
+
+            Real val_cut;
+            mlndlap_divu_eb_cell(i,j,k,val_cut,ebvel,intg,msk,dxinv,nodal_domain,bclo,bchi);
+
+            Real facx = Real(0.25)*dxinv[0];
+            Real facy = Real(0.25)*dxinv[1];
+            Real facz = Real(0.25)*dxinv[2];
+
+            Real val_full = 0.;
+            if (!flag(i,j-1,k-1).isCovered() && !flag(i-1,j-1,k-1).isCovered())
+                val_full += (ebvel(i,j-1,k-1,0) - ebvel(i-1,j-1,k-1,0))*facx;
+            if (!flag(i-1,j  ,k-1).isCovered() && !flag(i  ,j  ,k-1).isCovered())
+                val_full += (ebvel(i,j  ,k-1,0) - ebvel(i-1,j  ,k-1,0))*facx;
+            if (!flag(i-1,j-1,k  ).isCovered() && !flag(i  ,j-1,k  ).isCovered())
+                val_full += (ebvel(i,j-1,k  ,0) - ebvel(i-1,j-1,k  ,0))*facx;
+            if (!flag(i-1,j  ,k  ).isCovered() && !flag(i  ,j  ,k  ).isCovered())
+                val_full += (ebvel(i,j  ,k  ,0) - ebvel(i-1,j  ,k  ,0))*facx;
+
+            if (!flag(i-1,j,k-1).isCovered() && !flag(i-1,j-1,k-1).isCovered())
+                val_full += (ebvel(i-1,j  ,k-1,1) - ebvel(i-1,j-1,k-1,1))*facy;
+            if (!flag(i  ,j-1,k-1).isCovered() && !flag(i  ,j  ,k-1).isCovered())
+                val_full += (ebvel(i  ,j  ,k-1,1) - ebvel(i  ,j-1,k-1,1))*facy;
+            if (!flag(i-1,j-1,k  ).isCovered() && !flag(i-1,j  ,k  ).isCovered())
+                val_full += (ebvel(i-1,j  ,k  ,1) - ebvel(i-1,j-1,k  ,1))*facy;
+            if (!flag(i  ,j-1,k  ).isCovered() && !flag(i  ,j  ,k  ).isCovered())
+                val_full += (ebvel(i  ,j  ,k  ,1) - ebvel(i  ,j-1,k  ,1))*facy;
+
+            if (!flag(i-1,j-1,k).isCovered() && !flag(i-1,j-1,k-1).isCovered())
+                val_full += (ebvel(i-1,j-1,k  ,2) - ebvel(i-1,j-1,k-1,2))*facz;
+            if (!flag(i  ,j-1,k-1).isCovered() && !flag(i  ,j-1,k  ).isCovered())
+                val_full += (ebvel(i  ,j-1,k  ,2) - ebvel(i  ,j-1,k-1,2))*facz;
+            if (!flag(i-1,j  ,k-1).isCovered() && !flag(i-1,j  ,k  ).isCovered())
+                val_full += (ebvel(i-1,j  ,k  ,2) - ebvel(i-1,j  ,k-1,2))*facz;
+            if (!flag(i  ,j  ,k-1).isCovered() && !flag(i  ,j  ,k  ).isCovered())
+                val_full += (ebvel(i  ,j  ,k  ,2) - ebvel(i  ,j  ,k-1,2))*facz;
+
+            sfc_integral = val_full - val_cut;
+
+            // FOR DEBUGGING ONLY
+            Real sfc_integral_2;
+            add_eb_flow_contribution (i,j,k,sfc_integral_2,msk,dxinv,bareaarr,sintg,eb_vel_dot_n);
+
+            if (std::abs(sfc_integral-sfc_integral_2) > 1.e-8) {
+                amrex::Print() << "SFC INTEGRALS DIFFER " << IntVect(i,j,k) << " " << sfc_integral << " " << sfc_integral_2 << std::endl;
+                amrex::Error();
+            }
+            // END FOR DEBUGGING ONLY
+
+            rhs(i,j,k) += sfc_integral;
+        }
     }
 }
 

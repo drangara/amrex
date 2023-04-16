@@ -1058,10 +1058,9 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
 
                     if (m_eb_vel_dot_n[ilev]) {
                         Array4<Real const> const& eb_vel_dot_n = m_eb_vel_dot_n[ilev]->const_array(mfi);
-#if (AMREX_SPACEDIM == 2)
                         Array4<Real const> const& bareaarr = barea->const_array(mfi);
                         Array4<Real const> const& sintgarr = sintg->const_array(mfi);
-#else
+#if (AMREX_SPACEDIM == 3)
                         Array4<Real const> const& vfracarr = vfrac->const_array(mfi);
                         Array4<Real const> const& intgarr = intg->const_array(mfi);
                         Array4<Real const> const& ebvelarr = m_eb_vel_vec[ilev]->const_array(mfi);
@@ -1075,7 +1074,10 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
                                 dxinvarr,bareaarr,sintgarr,eb_vel_dot_n);
 #else
                             add_eb_flow_contrib_new(i,j,k,rhsarr,dmskarr,ebvelarr,
-                                                    vfracarr,intgarr,flagarr,dxinvarr,nddom,lobc,hibc);
+                                                    vfracarr,intgarr,
+                                                    bareaarr,sintgarr,
+                                                    flagarr,dxinvarr,nddom,lobc,hibc,
+                                                    eb_vel_dot_n);
 #endif
                         });
                     }
