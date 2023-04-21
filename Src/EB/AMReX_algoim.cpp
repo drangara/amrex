@@ -118,8 +118,6 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
                                                    { return y*y*z*z; });
                         intg(i,j,k,i_S_xyz  ) = q([] AMREX_GPU_DEVICE (Real x, Real y, Real z) noexcept
                                                    { return x*y*z; });
-                        intg(i,j,k,i_S_1  )   = q([] AMREX_GPU_DEVICE (Real /*x*/, Real /*y*/, Real /*z*/) noexcept
-                                                   { return 1; });
                     }
                 });
             }
@@ -180,8 +178,6 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
                                                    { return y*y*z*z; });
                         intg(i,j,k,i_S_xyz  ) = q.eval([](Real x, Real y, Real z) noexcept
                                                    { return x*y*z; });
-                        intg(i,j,k,i_S_1  )   = q.eval([](Real /*x*/, Real /*y*/, Real /*z*/) noexcept
-                                                   { return 1; });
                     }
                 }
             }
@@ -313,8 +309,6 @@ compute_surface_integrals (MultiFab& sintgmf, IntVect nghost)
                                                        { return y*z; });
                             sintg(i,j,k,i_B_xyz) = q([] AMREX_GPU_DEVICE (Real x, Real y, Real z) noexcept
                                                        { return x*y*z; });
-                            sintg(i,j,k,i_B_1)   = q([] AMREX_GPU_DEVICE (Real /*x*/, Real /*y*/, Real /*z*/) noexcept
-                                                       { return 1; });
                         }
                     }
                 });
@@ -380,8 +374,6 @@ compute_surface_integrals (MultiFab& sintgmf, IntVect nghost)
                                                        { return y*z; });
                             sintg(i,j,k,i_B_xyz) = q.eval([](Real x, Real y, Real z) noexcept
                                                        { return x*y*z; });
-                            sintg(i,j,k,i_B_1)   = q.eval([](Real /*x*/, Real /*y*/, Real /*z*/) noexcept
-                                                       { return 1; });
                         }
                     }
                 }

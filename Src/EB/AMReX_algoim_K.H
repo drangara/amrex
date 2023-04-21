@@ -645,7 +645,6 @@ void set_regular (int i, int j, int k, Array4<Real> const& intg) noexcept
     intg(i,j,k,i_S_x2_z2) = offth;
     intg(i,j,k,i_S_y2_z2) = offth;
     intg(i,j,k,i_S_xyz  ) = 0.0_rt;
-    intg(i,j,k,i_S_1  )   = 1.0_rt;
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -658,7 +657,6 @@ void set_regular_surface (int i, int j, int k, Array4<Real> const& sintg) noexce
     sintg(i,j,k,i_B_x_z  ) = 0.0_rt;
     sintg(i,j,k,i_B_y_z  ) = 0.0_rt;
     sintg(i,j,k,i_B_xyz  ) = 0.0_rt;
-    sintg(i,j,k,i_B_1  )   = 0.0_rt;
 }
 
 }

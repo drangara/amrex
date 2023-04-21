@@ -6413,8 +6413,7 @@ namespace {
     constexpr int i_S_x2_z2 = 16;
     constexpr int i_S_y2_z2 = 17;
     constexpr int i_S_xyz   = 18;
-    constexpr int i_S_1     = 19;
-    constexpr int n_Sintg   = 20;
+    constexpr int n_Sintg   = 19;
 
     constexpr int i_c_xmym = 0;
     constexpr int i_c_xmyb = 1;
@@ -6452,8 +6451,7 @@ namespace {
     constexpr int i_B_x_z      =  4;
     constexpr int i_B_y_z      =  5;
     constexpr int i_B_xyz      =  6;
-    constexpr int i_B_1        =  7;
-    constexpr int numSurfIntgs =  8;
+    constexpr int numSurfIntgs =  7;
 
 }
 
@@ -6468,159 +6466,159 @@ void mlndlap_set_connection (int i, int j, int k, Array4<Real> const& conn,
         for (int n = 0; n < n_conn; ++n) conn(i,j,k,n) = Real(1.);
     } else {
         // Scaled by 9
-        conn(i,j,k,i_c_xmym) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xmym) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*(-intg(i,j,k,i_S_x ) - intg(i,j,k,i_S_y)
                        +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(9.)*( intg(i,j,k,i_S_x_y ) - intg(i,j,k,i_S_x2_y)
                      -intg(i,j,k,i_S_x_y2) + intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xmyb) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xmyb) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*(-intg(i,j,k,i_S_x) + intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_y2))
             + Real(18.)*( intg(i,j,k,i_S_x_y2) - intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xmyp) =  Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xmyp) =  Real(0.5625)*vol(i,j,k)
             + Real(2.25)*(-intg(i,j,k,i_S_x ) + intg(i,j,k,i_S_y)
                        +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(9.)*(-intg(i,j,k,i_S_x_y ) + intg(i,j,k,i_S_x2_y)
                      -intg(i,j,k,i_S_x_y2) + intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbym) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xbym) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*(-intg(i,j,k,i_S_y) - intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(18.)*(intg(i,j,k,i_S_x2_y) - intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 36
-        conn(i,j,k,i_c_xbyb) = Real(2.25)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xbyb) = Real(2.25)*vol(i,j,k)
             + Real(9.)*(-intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_y2))
             + Real(36.)*intg(i,j,k,i_S_x2_y2);
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbyp) =  Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xbyp) =  Real(1.125)*vol(i,j,k)
             + Real(4.5)*( intg(i,j,k,i_S_y) - intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(18.)*(-intg(i,j,k,i_S_x2_y) - intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xpym) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xpym) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*( intg(i,j,k,i_S_x ) - intg(i,j,k,i_S_y)
                         +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(9.)*(-intg(i,j,k,i_S_x_y ) - intg(i,j,k,i_S_x2_y)
                      +intg(i,j,k,i_S_x_y2) + intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xpyb) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xpyb) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*( intg(i,j,k,i_S_x) + intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_y2))
             + Real(18.)*(-intg(i,j,k,i_S_x_y2) - intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xpyp) =  Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xpyp) =  Real(0.5625)*vol(i,j,k)
             + Real(2.25)*( intg(i,j,k,i_S_x ) + intg(i,j,k,i_S_y)
                         +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_y2))
             + Real(9.)*( intg(i,j,k,i_S_x_y ) + intg(i,j,k,i_S_x2_y)
                       +intg(i,j,k,i_S_x_y2) + intg(i,j,k,i_S_x2_y2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xmzm) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xmzm) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*(-intg(i,j,k,i_S_x) - intg(i,j,k,i_S_z)
                        +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(intg(i,j,k,i_S_x_z) - intg(i,j,k,i_S_x2_z)
                      -intg(i,j,k,i_S_x_z2) + intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xmzb) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xmzb) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*(-intg(i,j,k,i_S_x) + intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_z2))
             + Real(18.)*(intg(i,j,k,i_S_x_z2) - intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xmzp) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xmzp) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*(-intg(i,j,k,i_S_x  ) + intg(i,j,k,i_S_z)
                        +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(-intg(i,j,k,i_S_x_z  ) + intg(i,j,k,i_S_x2_z)
                      -intg(i,j,k,i_S_x_z2) + intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbzm) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xbzm) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*(-intg(i,j,k,i_S_z) - intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(18.)*(intg(i,j,k,i_S_x2_z) - intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbzb) = Real(2.25)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xbzb) = Real(2.25)*vol(i,j,k)
             + Real(9.)*(-intg(i,j,k,i_S_x2) - intg(i,j,k,i_S_z2))
             + Real(36.)*intg(i,j,k,i_S_x2_z2);
 
         // Scaled by 18
-        conn(i,j,k,i_c_xbzp) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xbzp) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*( intg(i,j,k,i_S_z) - intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(18.)*(-intg(i,j,k,i_S_x2_z) - intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xpzm) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xpzm) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*( intg(i,j,k,i_S_x ) - intg(i,j,k,i_S_z)
                         +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(-intg(i,j,k,i_S_x_z ) - intg(i,j,k,i_S_x2_z)
                      +intg(i,j,k,i_S_x_z2) + intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_xpzb) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xpzb) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*( intg(i,j,k,i_S_x   ) + intg(i,j,k,i_S_x2   ) - intg(i,j,k,i_S_z2))
             + Real(18.)*(-intg(i,j,k,i_S_x_z2) - intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_xpzp) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_xpzp) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*( intg(i,j,k,i_S_x ) + intg(i,j,k,i_S_z)
                         +intg(i,j,k,i_S_x2) + intg(i,j,k,i_S_z2))
             + Real(9.)*( intg(i,j,k,i_S_x_z ) + intg(i,j,k,i_S_x2_z)
                       +intg(i,j,k,i_S_x_z2) + intg(i,j,k,i_S_x2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_ymzm) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_ymzm) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*(-intg(i,j,k,i_S_y) - intg(i,j,k,i_S_z)
                        +intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(intg(i,j,k,i_S_y_z) - intg(i,j,k,i_S_y2_z)
                      -intg(i,j,k,i_S_y_z2) + intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_ymzb) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_ymzb) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*(-intg(i,j,k,i_S_y) + intg(i,j,k,i_S_y2) - intg(i,j,k,i_S_z2))
             + Real(18.)*(intg(i,j,k,i_S_y_z2) - intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_ymzp) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_ymzp) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*(-intg(i,j,k,i_S_y ) + intg(i,j,k,i_S_z)
                        +intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(-intg(i,j,k,i_S_y_z ) + intg(i,j,k,i_S_y2_z)
                      -intg(i,j,k,i_S_y_z2) + intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_ybzm) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_ybzm) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*(-intg(i,j,k,i_S_z) - intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(18.)*(intg(i,j,k,i_S_y2_z) - intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 36
-        conn(i,j,k,i_c_ybzb) = Real(2.25)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_ybzb) = Real(2.25)*vol(i,j,k)
             + Real(9.)*(-intg(i,j,k,i_S_y2) - intg(i,j,k,i_S_z2))
                      + Real(36.)*intg(i,j,k,i_S_y2_z2);
 
         // Scaled by 18
-        conn(i,j,k,i_c_ybzp) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_ybzp) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*( intg(i,j,k,i_S_z) - intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(18.)*(-intg(i,j,k,i_S_y2_z) - intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_ypzm) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_ypzm) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*( intg(i,j,k,i_S_y ) - intg(i,j,k,i_S_z)
                         +intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(9.)*(-intg(i,j,k,i_S_y_z ) - intg(i,j,k,i_S_y2_z)
                      +intg(i,j,k,i_S_y_z2) + intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 18
-        conn(i,j,k,i_c_ypzb) = Real(1.125)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_ypzb) = Real(1.125)*vol(i,j,k)
             + Real(4.5)*( intg(i,j,k,i_S_y   ) + intg(i,j,k,i_S_y2) - intg(i,j,k,i_S_z2))
             + Real(18.)*(-intg(i,j,k,i_S_y_z2) - intg(i,j,k,i_S_y2_z2));
 
         // Scaled by 9
-        conn(i,j,k,i_c_ypzp) = Real(0.5625)*intg(i,j,k,i_S_1)
+        conn(i,j,k,i_c_ypzp) = Real(0.5625)*vol(i,j,k)
             + Real(2.25)*( intg(i,j,k,i_S_y ) + intg(i,j,k,i_S_z)
                         +intg(i,j,k,i_S_y2) + intg(i,j,k,i_S_z2))
             + Real(9.)*( intg(i,j,k,i_S_y_z ) + intg(i,j,k,i_S_y2_z)
@@ -6679,7 +6677,7 @@ void mlndlap_set_stencil_eb (int i, int j, int k, Array4<Real> const& sten,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void mlndlap_divu_eb_cell (int i, int j, int k, Real& rhs_val, Array4<Real const> const& vel,
-                           Array4<Real const> const& intg,
+                           Array4<Real const> const& vfrac, Array4<Real const> const& intg,
                            Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
                            Box const& nodal_domain,
                            GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
@@ -6717,101 +6715,101 @@ void mlndlap_divu_eb_cell (int i, int j, int k, Real& rhs_val, Array4<Real const
             && k == domhi.z) zero_khi = Real(0.0);
 
         rhs_val = facx*(
-            vel(i-1,j-1,k  ,0)*(        -intg(i-1,j-1,k  ,i_S_1)
+            vel(i-1,j-1,k  ,0)*(    -vfrac(i-1,j-1,k  )
                                -Real(2.)*intg(i-1,j-1,k  ,i_S_y)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_z)
                                +Real(4.)*intg(i-1,j-1,k  ,i_S_y_z))*zero_jlo*zero_khi
-           +vel(i  ,j-1,k  ,0)*(         intg(i  ,j-1,k  ,i_S_1)
+           +vel(i  ,j-1,k  ,0)*(     vfrac(i  ,j-1,k  )
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_y)
                                -Real(2.)*intg(i  ,j-1,k  ,i_S_z)
                                -Real(4.)*intg(i  ,j-1,k  ,i_S_y_z))*zero_jlo*zero_khi
-           +vel(i-1,j  ,k  ,0)*(        -intg(i-1,j  ,k  ,i_S_1)
+           +vel(i-1,j  ,k  ,0)*(    -vfrac(i-1,j  ,k  )
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_y)
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_z)
                                -Real(4.)*intg(i-1,j  ,k  ,i_S_y_z))*zero_jhi*zero_khi
-           +vel(i  ,j  ,k  ,0)*(         intg(i  ,j  ,k  ,i_S_1)
+           +vel(i  ,j  ,k  ,0)*(     vfrac(i  ,j  ,k  )
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_y)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_z)
                                +Real(4.)*intg(i  ,j  ,k  ,i_S_y_z))*zero_jhi*zero_khi
-           +vel(i-1,j-1,k-1,0)*(        -intg(i-1,j-1,k-1,i_S_1)
+           +vel(i-1,j-1,k-1,0)*(    -vfrac(i-1,j-1,k-1)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_y)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_z)
                                -Real(4.)*intg(i-1,j-1,k-1,i_S_y_z))*zero_jlo*zero_klo
-           +vel(i  ,j-1,k-1,0)*(         intg(i  ,j-1,k-1,i_S_1)
+           +vel(i  ,j-1,k-1,0)*(     vfrac(i  ,j-1,k-1)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_y)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_z)
                                +Real(4.)*intg(i  ,j-1,k-1,i_S_y_z))*zero_jlo*zero_klo
-           +vel(i-1,j  ,k-1,0)*(        -intg(i-1,j  ,k-1,i_S_1)
+           +vel(i-1,j  ,k-1,0)*(    -vfrac(i-1,j  ,k-1)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_y)
                                -Real(2.)*intg(i-1,j  ,k-1,i_S_z)
                                +Real(4.)*intg(i-1,j  ,k-1,i_S_y_z))*zero_jhi*zero_klo
-           +vel(i  ,j  ,k-1,0)*(         intg(i  ,j  ,k-1,i_S_1)
+           +vel(i  ,j  ,k-1,0)*(     vfrac(i  ,j  ,k-1)
                                -Real(2.)*intg(i  ,j  ,k-1,i_S_y)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_z)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_y_z))*zero_jhi*zero_klo )
             + facy*(
-            vel(i-1,j-1,k  ,1)*(        -intg(i-1,j-1,k  ,i_S_1)
+            vel(i-1,j-1,k  ,1)*(    -vfrac(i-1,j-1,k  )
                                -Real(2.)*intg(i-1,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_z)
                                +Real(4.)*intg(i-1,j-1,k  ,i_S_x_z))*zero_ilo*zero_khi
-           +vel(i  ,j-1,k  ,1)*(        -intg(i  ,j-1,k  ,i_S_1)
+           +vel(i  ,j-1,k  ,1)*(    -vfrac(i  ,j-1,k  )
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_z)
                                -Real(4.)*intg(i  ,j-1,k  ,i_S_x_z))*zero_ihi*zero_khi
-           +vel(i-1,j  ,k  ,1)*(         intg(i-1,j  ,k  ,i_S_1)
+           +vel(i-1,j  ,k  ,1)*(     vfrac(i-1,j  ,k  )
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i-1,j  ,k  ,i_S_z)
                                -Real(4.)*intg(i-1,j  ,k  ,i_S_x_z))*zero_ilo*zero_khi
-           +vel(i  ,j  ,k  ,1)*(         intg(i  ,j  ,k  ,i_S_1)
+           +vel(i  ,j  ,k  ,1)*(     vfrac(i  ,j  ,k  )
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_z)
                                +Real(4.)*intg(i  ,j  ,k  ,i_S_x_z))*zero_ihi*zero_khi
-           +vel(i-1,j-1,k-1,1)*(        -intg(i-1,j-1,k-1,i_S_1)
+           +vel(i-1,j-1,k-1,1)*(    -vfrac(i-1,j-1,k-1)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_z)
                                -Real(4.)*intg(i-1,j-1,k-1,i_S_x_z))*zero_ilo*zero_klo
-           +vel(i  ,j-1,k-1,1)*(        -intg(i  ,j-1,k-1,i_S_1)
+           +vel(i  ,j-1,k-1,1)*(    -vfrac(i  ,j-1,k-1)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i  ,j-1,k-1,i_S_z)
                                +Real(4.)*intg(i  ,j-1,k-1,i_S_x_z))*zero_ihi*zero_klo
-           +vel(i-1,j  ,k-1,1)*(         intg(i-1,j  ,k-1,i_S_1)
+           +vel(i-1,j  ,k-1,1)*(     vfrac(i-1,j  ,k-1)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_z)
                                +Real(4.)*intg(i-1,j  ,k-1,i_S_x_z))*zero_ilo*zero_klo
-           +vel(i  ,j  ,k-1,1)*(         intg(i  ,j  ,k-1,i_S_1)
+           +vel(i  ,j  ,k-1,1)*(     vfrac(i  ,j  ,k-1)
                                -Real(2.)*intg(i  ,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_z)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_x_z))*zero_ihi*zero_klo )
             + facz*(
-            vel(i-1,j-1,k  ,2)*(         intg(i-1,j-1,k  ,i_S_1)
+            vel(i-1,j-1,k  ,2)*(     vfrac(i-1,j-1,k  )
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_y)
                                +Real(4.)*intg(i-1,j-1,k  ,i_S_x_y))*zero_ilo*zero_jlo
-           +vel(i  ,j-1,k  ,2)*(         intg(i  ,j-1,k  ,i_S_1)
+           +vel(i  ,j-1,k  ,2)*(     vfrac(i  ,j-1,k  )
                                -Real(2.)*intg(i  ,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_y)
                                -Real(4.)*intg(i  ,j-1,k  ,i_S_x_y))*zero_ihi*zero_jlo
-           +vel(i-1,j  ,k  ,2)*(         intg(i-1,j  ,k  ,i_S_1)
+           +vel(i-1,j  ,k  ,2)*(     vfrac(i-1,j  ,k  )
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i-1,j  ,k  ,i_S_y)
                                -Real(4.)*intg(i-1,j  ,k  ,i_S_x_y))*zero_ilo*zero_jhi
-           +vel(i  ,j  ,k  ,2)*(         intg(i  ,j  ,k  ,i_S_1)
+           +vel(i  ,j  ,k  ,2)*(     vfrac(i  ,j  ,k  )
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_y)
                                +Real(4.)*intg(i  ,j  ,k  ,i_S_x_y))*zero_ihi*zero_jhi
-           +vel(i-1,j-1,k-1,2)*(        -intg(i-1,j-1,k-1,i_S_1)
+           +vel(i-1,j-1,k-1,2)*(    -vfrac(i-1,j-1,k-1)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_y)
                                -Real(4.)*intg(i-1,j-1,k-1,i_S_x_y))*zero_ilo*zero_jlo
-           +vel(i  ,j-1,k-1,2)*(        -intg(i  ,j-1,k-1,i_S_1)
+           +vel(i  ,j-1,k-1,2)*(    -vfrac(i  ,j-1,k-1)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i  ,j-1,k-1,i_S_y)
                                +Real(4.)*intg(i  ,j-1,k-1,i_S_x_y))*zero_ihi*zero_jlo
-           +vel(i-1,j  ,k-1,2)*(        -intg(i-1,j  ,k-1,i_S_1)
+           +vel(i-1,j  ,k-1,2)*(    -vfrac(i-1,j  ,k-1)
                                -Real(2.)*intg(i-1,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_y)
                                +Real(4.)*intg(i-1,j  ,k-1,i_S_x_y))*zero_ilo*zero_jhi
-           +vel(i  ,j  ,k-1,2)*(        -intg(i  ,j  ,k-1,i_S_1)
+           +vel(i  ,j  ,k-1,2)*(    -vfrac(i  ,j  ,k-1)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_y)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_x_y))*zero_ihi*zero_jhi );
@@ -6828,7 +6826,7 @@ void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real 
                       GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
                       GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
 {
-    mlndlap_divu_eb_cell(i,j,k,rhs(i,j,k),vel,intg,msk,dxinv,nodal_domain,bclo,bchi);
+    mlndlap_divu_eb_cell(i,j,k,rhs(i,j,k),vel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -6843,7 +6841,7 @@ void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
 
     if (!msk(i,j,k)) {
         sfc_integral += fac_eb*(
-            eb_vel_dot_n(i-1,j-1,k  )*(           sintg(i-1,j-1,k  ,i_B_1)
+            eb_vel_dot_n(i-1,j-1,k  )*(        bareaarr(i-1,j-1,k)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_x)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_y)
                                         +Real(4.)*sintg(i-1,j-1,k  ,i_B_x_y)
@@ -6851,7 +6849,7 @@ void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
                                         -Real(4.)*sintg(i-1,j-1,k  ,i_B_y_z)
                                         -Real(4.)*sintg(i-1,j-1,k  ,i_B_x_z)
                                         -Real(8.)*sintg(i-1,j-1,k  ,i_B_xyz))
-           +eb_vel_dot_n(i  ,j-1,k  )*(           sintg(i  ,j-1,k  ,i_B_1)
+           +eb_vel_dot_n(i  ,j-1,k  )*(        bareaarr(i  ,j-1,k)
                                         -Real(2.)*sintg(i  ,j-1,k  ,i_B_x)
                                         +Real(2.)*sintg(i  ,j-1,k  ,i_B_y)
                                         -Real(4.)*sintg(i  ,j-1,k  ,i_B_x_y)
@@ -6859,7 +6857,7 @@ void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
                                         -Real(4.)*sintg(i  ,j-1,k  ,i_B_y_z)
                                         +Real(4.)*sintg(i  ,j-1,k  ,i_B_x_z)
                                         +Real(8.)*sintg(i  ,j-1,k  ,i_B_xyz))
-           +eb_vel_dot_n(i-1,j  ,k  )*(           sintg(i-1,j  ,k  ,i_B_1)
+           +eb_vel_dot_n(i-1,j  ,k  )*(        bareaarr(i-1,j  ,k)
                                         +Real(2.)*sintg(i-1,j  ,k  ,i_B_x)
                                         -Real(2.)*sintg(i-1,j  ,k  ,i_B_y)
                                         -Real(4.)*sintg(i-1,j  ,k  ,i_B_x_y)
@@ -6867,7 +6865,7 @@ void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
                                         +Real(4.)*sintg(i-1,j  ,k  ,i_B_y_z)
                                         -Real(4.)*sintg(i-1,j  ,k  ,i_B_x_z)
                                         +Real(8.)*sintg(i-1,j  ,k  ,i_B_xyz))
-           +eb_vel_dot_n(i  ,j  ,k  )*(           sintg(i  ,j  ,k  ,i_B_1)
+           +eb_vel_dot_n(i  ,j  ,k  )*(        bareaarr(i  ,j  ,k)
                                         -Real(2.)*sintg(i  ,j  ,k  ,i_B_x)
                                         -Real(2.)*sintg(i  ,j  ,k  ,i_B_y)
                                         +Real(4.)*sintg(i  ,j  ,k  ,i_B_x_y)
@@ -6875,7 +6873,7 @@ void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
                                         +Real(4.)*sintg(i  ,j  ,k  ,i_B_y_z)
                                         +Real(4.)*sintg(i  ,j  ,k  ,i_B_x_z)
                                         -Real(8.)*sintg(i  ,j  ,k  ,i_B_xyz))
-           +eb_vel_dot_n(i-1,j-1,k-1)*(           sintg(i-1,j-1,k-1,i_B_1)
+           +eb_vel_dot_n(i-1,j-1,k-1)*(        bareaarr(i-1,j-1,k-1)
                                         +Real(2.)*sintg(i-1,j-1,k-1,i_B_x)
                                         +Real(2.)*sintg(i-1,j-1,k-1,i_B_y)
                                         +Real(4.)*sintg(i-1,j-1,k-1,i_B_x_y)
@@ -6883,7 +6881,7 @@ void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
                                         +Real(4.)*sintg(i-1,j-1,k-1,i_B_y_z)
                                         +Real(4.)*sintg(i-1,j-1,k-1,i_B_x_z)
                                         +Real(8.)*sintg(i-1,j-1,k-1,i_B_xyz))
-           +eb_vel_dot_n(i  ,j-1,k-1)*(           sintg(i  ,j-1,k-1,i_B_1)
+           +eb_vel_dot_n(i  ,j-1,k-1)*(        bareaarr(i  ,j-1,k-1)
                                         -Real(2.)*sintg(i  ,j-1,k-1,i_B_x)
                                         +Real(2.)*sintg(i  ,j-1,k-1,i_B_y)
                                         -Real(4.)*sintg(i  ,j-1,k-1,i_B_x_y)
@@ -6891,7 +6889,7 @@ void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
                                         +Real(4.)*sintg(i  ,j-1,k-1,i_B_y_z)
                                         -Real(4.)*sintg(i  ,j-1,k-1,i_B_x_z)
                                         -Real(8.)*sintg(i  ,j-1,k-1,i_B_xyz))
-           +eb_vel_dot_n(i-1,j  ,k-1)*(           sintg(i-1,j  ,k-1,i_B_1)
+           +eb_vel_dot_n(i-1,j  ,k-1)*(        bareaarr(i-1,j  ,k-1)
                                         +Real(2.)*sintg(i-1,j  ,k-1,i_B_x)
                                         -Real(2.)*sintg(i-1,j  ,k-1,i_B_y)
                                         -Real(4.)*sintg(i-1,j  ,k-1,i_B_x_y)
@@ -6899,7 +6897,7 @@ void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
                                         -Real(4.)*sintg(i-1,j  ,k-1,i_B_y_z)
                                         +Real(4.)*sintg(i-1,j  ,k-1,i_B_x_z)
                                         -Real(8.)*sintg(i-1,j  ,k-1,i_B_xyz))
-           +eb_vel_dot_n(i  ,j  ,k-1)*(           sintg(i  ,j  ,k-1,i_B_1)
+           +eb_vel_dot_n(i  ,j  ,k-1)*(        bareaarr(i  ,j  ,k-1)
                                         -Real(2.)*sintg(i  ,j  ,k-1,i_B_x)
                                         -Real(2.)*sintg(i  ,j  ,k-1,i_B_y)
                                         +Real(4.)*sintg(i  ,j  ,k-1,i_B_x_y)
@@ -6909,6 +6907,7 @@ void add_eb_flow_contribution (int i, int j, int k, Real& sfc_integral,
                                         +Real(8.)*sintg(i  ,j  ,k-1,i_B_xyz)));
     }
 }
+
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void add_eb_flow_contrib_new (int i, int j, int k, Array4<Real> const& rhs,
@@ -6937,7 +6936,7 @@ void add_eb_flow_contrib_new (int i, int j, int k, Array4<Real> const& rhs,
         if (!node_all_covered && !node_regular) {
 
             Real val_cut;
-            mlndlap_divu_eb_cell(i,j,k,val_cut,ebvel,intg,msk,dxinv,nodal_domain,bclo,bchi);
+            mlndlap_divu_eb_cell(i,j,k,val_cut,ebvel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
 
             Real facx = Real(0.25)*dxinv[0];
             Real facy = Real(0.25)*dxinv[1];
