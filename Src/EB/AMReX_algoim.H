@@ -28,7 +28,8 @@ static constexpr int i_S_x2_y2 = 15;
 static constexpr int i_S_x2_z2 = 16;
 static constexpr int i_S_y2_z2 = 17;
 static constexpr int i_S_xyz   = 18;
-static constexpr int numIntgs  = 19;
+static constexpr int i_S_1     = 19;
+static constexpr int numIntgs  = 20;
 
 void compute_surface_integrals (MultiFab& sintg, int nghost = 100);
 void compute_surface_integrals (MultiFab& sintg, IntVect nghost);
@@ -40,7 +41,8 @@ static constexpr int i_B_x_y      =  3;
 static constexpr int i_B_x_z      =  4;
 static constexpr int i_B_y_z      =  5;
 static constexpr int i_B_xyz      =  6;
-static constexpr int numSurfIntgs =  7;
+static constexpr int i_B_1        =  7;
+static constexpr int numSurfIntgs =  8;
 
 }
 

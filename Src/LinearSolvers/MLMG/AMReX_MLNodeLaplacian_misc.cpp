@@ -994,8 +994,12 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
         const FabArray<EBCellFlagFab>* flags = (factory) ? &(factory->getMultiEBCellFlagFab()) : nullptr;
         const MultiFab* vfrac = (factory) ? &(factory->getVolFrac()) : nullptr;
         const MultiCutFab* barea = (factory) ? &(factory->getBndryArea()) : nullptr;
+        const MultiCutFab* bcent = (factory) ? &(factory->getBndryCent()) : nullptr;
+        const MultiCutFab* bnorm = (factory) ? &(factory->getBndryNormal()) : nullptr;
         const MultiFab* intg = m_integral[ilev].get();
         const MultiFab* sintg = m_surface_integral[ilev].get();
+        const auto& area = (factory) ? factory->getAreaFrac()
+            : Array<const MultiCutFab*,AMREX_SPACEDIM>{AMREX_D_DECL(nullptr,nullptr,nullptr)};
 
         AMREX_ALWAYS_ASSERT(ilev == m_num_amr_levels-1 || AMRRefRatio(ilev) == 2
                             || factory == nullptr || factory->isAllRegular());
@@ -1045,8 +1049,26 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
                         AMREX_HOST_DEVICE_FOR_3D(bx, i, j, k,
                         {
                             add_eb_flow_contribution(i,j,k,rhsarr,dmskarr,
-                                dxinvarr,bareaarr,sintgarr,eb_vel_dot_n);
+                                dxinvarr,sintgarr,eb_vel_dot_n);
+
                         });
+
+#if (AMREX_SPACEDIM == 3)
+                        Array4<Real const> const& bcentarr = bcent->const_array(mfi);
+                        Array4<Real const> const& bnormarr = bnorm->const_array(mfi);
+                        Array4<Real const> const& apx = area[0]->const_array(mfi);
+                        Array4<Real const> const& apy = area[1]->const_array(mfi);
+                        Array4<Real const> const& apz = area[2]->const_array(mfi);
+                        Array4<Real const> const& eb_vel = m_eb_vel[ilev]->const_array(mfi);
+
+                        AMREX_HOST_DEVICE_FOR_3D(bx, i, j, k,
+                        {
+                            add_eb_flow_contrib_from_mismatched_faces(i,j,k,rhsarr,dmskarr,
+                                dxinvarr,bcentarr,bnormarr,vfracarr,intgarr,eb_vel,apx,apy,apz);
+                        });
+                        Abort();
+
+#endif
                     }
                 }
                 else

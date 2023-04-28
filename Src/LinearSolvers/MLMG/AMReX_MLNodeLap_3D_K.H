@@ -6400,7 +6400,8 @@ namespace {
     constexpr int i_S_x2_z2 = 16;
     constexpr int i_S_y2_z2 = 17;
     constexpr int i_S_xyz   = 18;
-    constexpr int n_Sintg   = 19;
+    constexpr int i_S_1     = 19;
+    constexpr int n_Sintg   = 20;
 
     constexpr int i_c_xmym = 0;
     constexpr int i_c_xmyb = 1;
@@ -6438,7 +6439,8 @@ namespace {
     constexpr int i_B_x_z      =  4;
     constexpr int i_B_y_z      =  5;
     constexpr int i_B_xyz      =  6;
-    constexpr int numSurfIntgs =  7;
+    constexpr int i_B_1        =  7;
+    constexpr int numSurfIntgs =  8;
 
 }
 
@@ -6702,101 +6704,101 @@ void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real 
             && k == domhi.z) zero_khi = Real(0.0);
 
         rhs(i,j,k) = facx*(
-            vel(i-1,j-1,k  ,0)*(    -vfrac(i-1,j-1,k  )
+            vel(i-1,j-1,k  ,0)*(        -intg(i-1,j-1,k  ,i_S_1)
                                -Real(2.)*intg(i-1,j-1,k  ,i_S_y)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_z)
                                +Real(4.)*intg(i-1,j-1,k  ,i_S_y_z))*zero_jlo*zero_khi
-           +vel(i  ,j-1,k  ,0)*(     vfrac(i  ,j-1,k  )
+           +vel(i  ,j-1,k  ,0)*(         intg(i  ,j-1,k  ,i_S_1)
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_y)
                                -Real(2.)*intg(i  ,j-1,k  ,i_S_z)
                                -Real(4.)*intg(i  ,j-1,k  ,i_S_y_z))*zero_jlo*zero_khi
-           +vel(i-1,j  ,k  ,0)*(    -vfrac(i-1,j  ,k  )
+           +vel(i-1,j  ,k  ,0)*(        -intg(i-1,j  ,k  ,i_S_1)
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_y)
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_z)
                                -Real(4.)*intg(i-1,j  ,k  ,i_S_y_z))*zero_jhi*zero_khi
-           +vel(i  ,j  ,k  ,0)*(     vfrac(i  ,j  ,k  )
+           +vel(i  ,j  ,k  ,0)*(         intg(i  ,j  ,k  ,i_S_1)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_y)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_z)
                                +Real(4.)*intg(i  ,j  ,k  ,i_S_y_z))*zero_jhi*zero_khi
-           +vel(i-1,j-1,k-1,0)*(    -vfrac(i-1,j-1,k-1)
+           +vel(i-1,j-1,k-1,0)*(        -intg(i-1,j-1,k-1,i_S_1)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_y)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_z)
                                -Real(4.)*intg(i-1,j-1,k-1,i_S_y_z))*zero_jlo*zero_klo
-           +vel(i  ,j-1,k-1,0)*(     vfrac(i  ,j-1,k-1)
+           +vel(i  ,j-1,k-1,0)*(         intg(i  ,j-1,k-1,i_S_1)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_y)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_z)
                                +Real(4.)*intg(i  ,j-1,k-1,i_S_y_z))*zero_jlo*zero_klo
-           +vel(i-1,j  ,k-1,0)*(    -vfrac(i-1,j  ,k-1)
+           +vel(i-1,j  ,k-1,0)*(        -intg(i-1,j  ,k-1,i_S_1)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_y)
                                -Real(2.)*intg(i-1,j  ,k-1,i_S_z)
                                +Real(4.)*intg(i-1,j  ,k-1,i_S_y_z))*zero_jhi*zero_klo
-           +vel(i  ,j  ,k-1,0)*(     vfrac(i  ,j  ,k-1)
+           +vel(i  ,j  ,k-1,0)*(         intg(i  ,j  ,k-1,i_S_1)
                                -Real(2.)*intg(i  ,j  ,k-1,i_S_y)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_z)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_y_z))*zero_jhi*zero_klo )
             + facy*(
-            vel(i-1,j-1,k  ,1)*(    -vfrac(i-1,j-1,k  )
+            vel(i-1,j-1,k  ,1)*(        -intg(i-1,j-1,k  ,i_S_1)
                                -Real(2.)*intg(i-1,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_z)
                                +Real(4.)*intg(i-1,j-1,k  ,i_S_x_z))*zero_ilo*zero_khi
-           +vel(i  ,j-1,k  ,1)*(    -vfrac(i  ,j-1,k  )
+           +vel(i  ,j-1,k  ,1)*(        -intg(i  ,j-1,k  ,i_S_1)
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_z)
                                -Real(4.)*intg(i  ,j-1,k  ,i_S_x_z))*zero_ihi*zero_khi
-           +vel(i-1,j  ,k  ,1)*(     vfrac(i-1,j  ,k  )
+           +vel(i-1,j  ,k  ,1)*(         intg(i-1,j  ,k  ,i_S_1)
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i-1,j  ,k  ,i_S_z)
                                -Real(4.)*intg(i-1,j  ,k  ,i_S_x_z))*zero_ilo*zero_khi
-           +vel(i  ,j  ,k  ,1)*(     vfrac(i  ,j  ,k  )
+           +vel(i  ,j  ,k  ,1)*(         intg(i  ,j  ,k  ,i_S_1)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_z)
                                +Real(4.)*intg(i  ,j  ,k  ,i_S_x_z))*zero_ihi*zero_khi
-           +vel(i-1,j-1,k-1,1)*(    -vfrac(i-1,j-1,k-1)
+           +vel(i-1,j-1,k-1,1)*(        -intg(i-1,j-1,k-1,i_S_1)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_z)
                                -Real(4.)*intg(i-1,j-1,k-1,i_S_x_z))*zero_ilo*zero_klo
-           +vel(i  ,j-1,k-1,1)*(    -vfrac(i  ,j-1,k-1)
+           +vel(i  ,j-1,k-1,1)*(        -intg(i  ,j-1,k-1,i_S_1)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i  ,j-1,k-1,i_S_z)
                                +Real(4.)*intg(i  ,j-1,k-1,i_S_x_z))*zero_ihi*zero_klo
-           +vel(i-1,j  ,k-1,1)*(     vfrac(i-1,j  ,k-1)
+           +vel(i-1,j  ,k-1,1)*(         intg(i-1,j  ,k-1,i_S_1)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_z)
                                +Real(4.)*intg(i-1,j  ,k-1,i_S_x_z))*zero_ilo*zero_klo
-           +vel(i  ,j  ,k-1,1)*(     vfrac(i  ,j  ,k-1)
+           +vel(i  ,j  ,k-1,1)*(         intg(i  ,j  ,k-1,i_S_1)
                                -Real(2.)*intg(i  ,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_z)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_x_z))*zero_ihi*zero_klo )
             + facz*(
-            vel(i-1,j-1,k  ,2)*(     vfrac(i-1,j-1,k  )
+            vel(i-1,j-1,k  ,2)*(         intg(i-1,j-1,k  ,i_S_1)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_y)
                                +Real(4.)*intg(i-1,j-1,k  ,i_S_x_y))*zero_ilo*zero_jlo
-           +vel(i  ,j-1,k  ,2)*(     vfrac(i  ,j-1,k  )
+           +vel(i  ,j-1,k  ,2)*(         intg(i  ,j-1,k  ,i_S_1)
                                -Real(2.)*intg(i  ,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_y)
                                -Real(4.)*intg(i  ,j-1,k  ,i_S_x_y))*zero_ihi*zero_jlo
-           +vel(i-1,j  ,k  ,2)*(     vfrac(i-1,j  ,k  )
+           +vel(i-1,j  ,k  ,2)*(         intg(i-1,j  ,k  ,i_S_1)
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i-1,j  ,k  ,i_S_y)
                                -Real(4.)*intg(i-1,j  ,k  ,i_S_x_y))*zero_ilo*zero_jhi
-           +vel(i  ,j  ,k  ,2)*(     vfrac(i  ,j  ,k  )
+           +vel(i  ,j  ,k  ,2)*(         intg(i  ,j  ,k  ,i_S_1)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_y)
                                +Real(4.)*intg(i  ,j  ,k  ,i_S_x_y))*zero_ihi*zero_jhi
-           +vel(i-1,j-1,k-1,2)*(    -vfrac(i-1,j-1,k-1)
+           +vel(i-1,j-1,k-1,2)*(        -intg(i-1,j-1,k-1,i_S_1)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_y)
                                -Real(4.)*intg(i-1,j-1,k-1,i_S_x_y))*zero_ilo*zero_jlo
-           +vel(i  ,j-1,k-1,2)*(    -vfrac(i  ,j-1,k-1)
+           +vel(i  ,j-1,k-1,2)*(        -intg(i  ,j-1,k-1,i_S_1)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i  ,j-1,k-1,i_S_y)
                                +Real(4.)*intg(i  ,j-1,k-1,i_S_x_y))*zero_ihi*zero_jlo
-           +vel(i-1,j  ,k-1,2)*(    -vfrac(i-1,j  ,k-1)
+           +vel(i-1,j  ,k-1,2)*(        -intg(i-1,j  ,k-1,i_S_1)
                                -Real(2.)*intg(i-1,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_y)
                                +Real(4.)*intg(i-1,j  ,k-1,i_S_x_y))*zero_ilo*zero_jhi
-           +vel(i  ,j  ,k-1,2)*(    -vfrac(i  ,j  ,k-1)
+           +vel(i  ,j  ,k-1,2)*(        -intg(i  ,j  ,k-1,i_S_1)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_y)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_x_y))*zero_ihi*zero_jhi );
@@ -6808,7 +6810,6 @@ void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                       Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
-                      Array4<Real const> const& bareaarr,
                       Array4<Real const> const& sintg,
                       Array4<Real const> const& eb_vel_dot_n) noexcept
 {
@@ -6816,7 +6817,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
 
     if (!msk(i,j,k)) {
         rhs(i,j,k) += fac_eb*(
-            eb_vel_dot_n(i-1,j-1,k  )*(        bareaarr(i-1,j-1,k)
+            eb_vel_dot_n(i-1,j-1,k  )*(           sintg(i-1,j-1,k  ,i_B_1)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_x)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_y)
                                         +Real(4.)*sintg(i-1,j-1,k  ,i_B_x_y)
@@ -6824,7 +6825,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         -Real(4.)*sintg(i-1,j-1,k  ,i_B_y_z)
                                         -Real(4.)*sintg(i-1,j-1,k  ,i_B_x_z)
                                         -Real(8.)*sintg(i-1,j-1,k  ,i_B_xyz))
-           +eb_vel_dot_n(i  ,j-1,k  )*(        bareaarr(i  ,j-1,k)
+           +eb_vel_dot_n(i  ,j-1,k  )*(           sintg(i  ,j-1,k  ,i_B_1)
                                         -Real(2.)*sintg(i  ,j-1,k  ,i_B_x)
                                         +Real(2.)*sintg(i  ,j-1,k  ,i_B_y)
                                         -Real(4.)*sintg(i  ,j-1,k  ,i_B_x_y)
@@ -6832,7 +6833,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         -Real(4.)*sintg(i  ,j-1,k  ,i_B_y_z)
                                         +Real(4.)*sintg(i  ,j-1,k  ,i_B_x_z)
                                         +Real(8.)*sintg(i  ,j-1,k  ,i_B_xyz))
-           +eb_vel_dot_n(i-1,j  ,k  )*(        bareaarr(i-1,j  ,k)
+           +eb_vel_dot_n(i-1,j  ,k  )*(           sintg(i-1,j  ,k  ,i_B_1)
                                         +Real(2.)*sintg(i-1,j  ,k  ,i_B_x)
                                         -Real(2.)*sintg(i-1,j  ,k  ,i_B_y)
                                         -Real(4.)*sintg(i-1,j  ,k  ,i_B_x_y)
@@ -6840,7 +6841,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         +Real(4.)*sintg(i-1,j  ,k  ,i_B_y_z)
                                         -Real(4.)*sintg(i-1,j  ,k  ,i_B_x_z)
                                         +Real(8.)*sintg(i-1,j  ,k  ,i_B_xyz))
-           +eb_vel_dot_n(i  ,j  ,k  )*(        bareaarr(i  ,j  ,k)
+           +eb_vel_dot_n(i  ,j  ,k  )*(           sintg(i  ,j  ,k  ,i_B_1)
                                         -Real(2.)*sintg(i  ,j  ,k  ,i_B_x)
                                         -Real(2.)*sintg(i  ,j  ,k  ,i_B_y)
                                         +Real(4.)*sintg(i  ,j  ,k  ,i_B_x_y)
@@ -6848,7 +6849,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         +Real(4.)*sintg(i  ,j  ,k  ,i_B_y_z)
                                         +Real(4.)*sintg(i  ,j  ,k  ,i_B_x_z)
                                         -Real(8.)*sintg(i  ,j  ,k  ,i_B_xyz))
-           +eb_vel_dot_n(i-1,j-1,k-1)*(        bareaarr(i-1,j-1,k-1)
+           +eb_vel_dot_n(i-1,j-1,k-1)*(           sintg(i-1,j-1,k-1,i_B_1)
                                         +Real(2.)*sintg(i-1,j-1,k-1,i_B_x)
                                         +Real(2.)*sintg(i-1,j-1,k-1,i_B_y)
                                         +Real(4.)*sintg(i-1,j-1,k-1,i_B_x_y)
@@ -6856,7 +6857,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         +Real(4.)*sintg(i-1,j-1,k-1,i_B_y_z)
                                         +Real(4.)*sintg(i-1,j-1,k-1,i_B_x_z)
                                         +Real(8.)*sintg(i-1,j-1,k-1,i_B_xyz))
-           +eb_vel_dot_n(i  ,j-1,k-1)*(        bareaarr(i  ,j-1,k-1)
+           +eb_vel_dot_n(i  ,j-1,k-1)*(           sintg(i  ,j-1,k-1,i_B_1)
                                         -Real(2.)*sintg(i  ,j-1,k-1,i_B_x)
                                         +Real(2.)*sintg(i  ,j-1,k-1,i_B_y)
                                         -Real(4.)*sintg(i  ,j-1,k-1,i_B_x_y)
@@ -6864,7 +6865,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         +Real(4.)*sintg(i  ,j-1,k-1,i_B_y_z)
                                         -Real(4.)*sintg(i  ,j-1,k-1,i_B_x_z)
                                         -Real(8.)*sintg(i  ,j-1,k-1,i_B_xyz))
-           +eb_vel_dot_n(i-1,j  ,k-1)*(        bareaarr(i-1,j  ,k-1)
+           +eb_vel_dot_n(i-1,j  ,k-1)*(           sintg(i-1,j  ,k-1,i_B_1)
                                         +Real(2.)*sintg(i-1,j  ,k-1,i_B_x)
                                         -Real(2.)*sintg(i-1,j  ,k-1,i_B_y)
                                         -Real(4.)*sintg(i-1,j  ,k-1,i_B_x_y)
@@ -6872,7 +6873,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         -Real(4.)*sintg(i-1,j  ,k-1,i_B_y_z)
                                         +Real(4.)*sintg(i-1,j  ,k-1,i_B_x_z)
                                         -Real(8.)*sintg(i-1,j  ,k-1,i_B_xyz))
-           +eb_vel_dot_n(i  ,j  ,k-1)*(        bareaarr(i  ,j  ,k-1)
+           +eb_vel_dot_n(i  ,j  ,k-1)*(           sintg(i  ,j  ,k-1,i_B_1)
                                         -Real(2.)*sintg(i  ,j  ,k-1,i_B_x)
                                         -Real(2.)*sintg(i  ,j  ,k-1,i_B_y)
                                         +Real(4.)*sintg(i  ,j  ,k-1,i_B_x_y)
@@ -6880,6 +6881,93 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         -Real(4.)*sintg(i  ,j  ,k-1,i_B_y_z)
                                         -Real(4.)*sintg(i  ,j  ,k-1,i_B_x_z)
                                         +Real(8.)*sintg(i  ,j  ,k-1,i_B_xyz)));
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real> const& rhs,
+                      Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
+                      Array4<Real const> const& bc, Array4<Real const> const& bn,
+                      Array4<Real const> const& vfrac, Array4<Real const> const& intg,
+                      Array4<Real const> const& eb_vel,
+                      Array4<Real const> const& apx, Array4<Real const> const& apy,
+                      Array4<Real const> const& apz) noexcept
+{
+    if (!msk(i,j,k)) {
+
+        if (std::abs(vfrac(i-1,j,k) - intg(i-1,j,k,i_S_1)) >= almostzero ||
+                std::abs(vfrac(i,j,k) - intg(i,j,k,i_S_1)) >= almostzero &&
+                apx(i,j,k) < 1.0_rt) {
+
+            //
+            // Find points of intersection at the common face
+            // lo side x =  0.5
+            // hi side x = -0.5
+            //
+            Real lo_Cx = bc(i-1,j,k,0);
+            Real lo_Cy = bc(i-1,j,k,1);
+            Real lo_Cz = bc(i-1,j,k,2);
+            Real lo_nx = bn(i-1,j,k,0);
+            Real lo_ny = bn(i-1,j,k,1);
+            Real lo_nz = bn(i-1,j,k,2);
+
+            Real hi_Cx = bc(i,j,k,0);
+            Real hi_Cy = bc(i,j,k,1);
+            Real hi_Cz = bc(i,j,k,2);
+            Real hi_nx = bn(i,j,k,0);
+            Real hi_ny = bn(i,j,k,1);
+            Real hi_nz = bn(i,j,k,2);
+
+            GpuArray<Array<Real,2 >, 4> lo_ipts;
+            GpuArray<Array<Real,2 >, 4> hi_ipts;
+            int lo_np = 0;
+            int hi_np = 0;
+
+            // y = -0.5
+            {
+                Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cy)*lo_ny)/lo_nz;
+                Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cy)*hi_ny)/hi_nz;
+
+                if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {-0.5_rt,lo_z};}
+                if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {-0.5_rt,hi_z};}
+            }
+
+            // y = 0.5
+            {
+                Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cy)*lo_ny)/lo_nz;
+                Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cy)*hi_ny)/hi_nz;
+
+                if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {0.5_rt,lo_z};}
+                if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {0.5_rt,hi_z};}
+            }
+
+            // z = -0.5
+            {
+                Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+                Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+
+                if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,-0.5_rt};}
+                if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,-0.5_rt};}
+            }
+
+            // z = 0.5
+            {
+                Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+                Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+
+                if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,0.5_rt};}
+                if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,0.5_rt};}
+            }
+
+            if (i==19 && j==8 && k==4) {
+                for (int n = 0; n < lo_np; ++n) {
+                    Print() << "lo_ipts[" << n << "] = " << lo_ipts[n][0] << "," << lo_ipts[n][1] << std::endl;
+                }
+                for (int n = 0; n < hi_np; ++n) {
+                    Print() << "hi_ipts[" << n << "] = " << hi_ipts[n][0] << "," << hi_ipts[n][1] << std::endl;
+                }
+            }
+        }
     }
 }
 
