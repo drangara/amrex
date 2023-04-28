@@ -6885,6 +6885,23 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void compute_surface_integrals_on_face (Real& sintg_1, Real& sintg_x, Real& sintg_y,
+                                       Real& sintg_xy, Real x1, Real y1, Real x2,
+                                       Real y2, Real x3, Real y3) noexcept
+{
+    Real det = (x2 - x1)*(x3 - y1) - (x3 - x1)*(y2 - y1);
+    sintg_1 = 0.5_rt*det;
+    sintg_x = det*(x1 + x2 + x3)/6.0_rt;
+    sintg_y = det*(y1 + y2 + y3)/6.0_rt;
+    sintg_xy = det*((x1*y1)/2.0_rt
+               + (x1*(y2 - y1) + y1*(x2 - x1))/6.0_rt
+               + (x1*(y3 - y1) + y1*(x3 - x1))/6.0_rt
+               + ((x2 - x1)*(y3 - y1) + (x3 - x1)*(y2 - y1))/24.0_rt
+               + ((x2 - x1)*(y2 - y1))/12.0_rt
+               + ((x3 - x1)*(y3 - y1))/12.0_rt);
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real> const& rhs,
                       Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
                       Array4<Real const> const& bc, Array4<Real const> const& bn,
@@ -6965,6 +6982,121 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                 }
                 for (int n = 0; n < hi_np; ++n) {
                     Print() << "hi_ipts[" << n << "] = " << hi_ipts[n][0] << "," << hi_ipts[n][1] << std::endl;
+                }
+            }
+
+            if (lo_np == 2 && hi_np == 2) {
+                Real x0 = lo_ipts[0][0];
+                Real x1 = lo_ipts[1][0];
+                Real y0 = lo_ipts[0][1];
+                Real y1 = lo_ipts[1][1];
+
+                Real x2 = hi_ipts[0][0];
+                Real x3 = hi_ipts[1][0];
+                Real y2 = hi_ipts[0][1];
+                Real y3 = hi_ipts[1][1];
+
+                Real alo = (y1 - y0)/(x1 - x0);
+                Real blo = y0 - alo*x0;
+
+                Real ahi = (y3 - y2)/(x3 - x2);
+                Real bhi = y2 - ahi*x2;
+
+                Real xi = -(blo - bhi)/(alo - ahi);
+                Real yi = alo*xi + blo;
+
+                if (xi <= 0.5_rt && xi >= -0.5_rt && yi <= 0.5_rt && yi >= -0.5_rt) {
+                    if (i==19 && j==8 && k==4) {
+                        Print() << "POINTS:\n";
+                        Print() << "(" << x0 << "," << y0 << ")\n";
+                        Print() << "(" << x1 << "," << y1 << ")\n";
+                        Print() << "(" << x2 << "," << y2 << ")\n";
+                        Print() << "(" << x3 << "," << y3 << ")\n";
+                        Print() << "(" << xi << "," << yi << ")\n";
+                    }
+
+                    Real X1 = 0._rt;
+                    Real Y1 = 0._rt;
+                    Real X2 = 0._rt;
+                    Real Y2 = 0._rt;
+                    Real X3 = 0._rt;
+                    Real Y3 = 0._rt;
+                    Real sintg_1 = 0.0_rt;
+                    Real sintg_x = 0.0_rt;
+                    Real sintg_y = 0.0_rt;
+                    Real sintg_xy = 0.0_rt;
+
+                    // Triangle 1
+                    {
+                        if (x0 == x2 && x0 == -0.5_rt) {
+                            if (y0 > y2) {
+                                // Triangle 1 is (x0,y0), (x2,y2), (xi,yi)
+                                X1 = x0;
+                                Y1 = y0;
+                                X2 = x2;
+                                Y2 = y2;
+                                X3 = xi;
+                                Y3 = yi;
+                            } else if (y2 > y0) {
+                                // Triangle 1 is (x2,y2), (x0,y0), (xi,yi)
+                                X1 = x2;
+                                Y1 = y2;
+                                X2 = x0;
+                                Y2 = y0;
+                                X3 = xi;
+                                Y3 = yi;
+                            }
+                        }
+
+
+                        compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,X1,
+                                                          Y1,X2,Y2,X3,Y3);
+
+
+                        if (i==19 && j==8 && k==4) {
+                            Print() << "(" << X1 << "," << Y1 << "),(" << X2 << "," << Y2 << "),(" << X3 << "," << Y3 << ")\n";
+                            Print() << "integrals:\n";
+                            Print() << "1: " << sintg_1 << "\n";
+                            Print() << "x: " << sintg_x << "\n";
+                            Print() << "y: " << sintg_y << "\n";
+                            Print() << "xy: " << sintg_xy << "\n";
+                        }
+                    }
+
+                    // Triangle 2
+                    {
+                        if (y1 == y3 && y1 == 0.5_rt) {
+                            if (x1 > x3) {
+                                // Triangle 1 is (x1,y1), (x3,y3), (xi,yi)
+                                X1 = x1;
+                                Y1 = y1;
+                                X2 = x3;
+                                Y2 = y3;
+                                X3 = xi;
+                                Y3 = yi;
+                            } else if (x3 > x1) {
+                                // Triangle 1 is (x3,y3), (x1,y1), (xi,yi)
+                                X1 = x3;
+                                Y1 = y3;
+                                X2 = x1;
+                                Y2 = y1;
+                                X3 = xi;
+                                Y3 = yi;
+                            }
+                        }
+
+                        compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,X1,
+                                                          Y1,X2,Y2,X3,Y3);
+
+                        if (i==19 && j==8 && k==4) {
+                            Print() << "(" << X1 << "," << Y1 << "),(" << X2 << "," << Y2 << "),(" << X3 << "," << Y3 << ")\n";
+                            Print() << "integrals:\n";
+                            Print() << "1: " << sintg_1 << "\n";
+                            Print() << "x: " << sintg_x << "\n";
+                            Print() << "y: " << sintg_y << "\n";
+                            Print() << "xy: " << sintg_xy << "\n";
+                        }
+                    }
                 }
             }
         }
