@@ -6885,11 +6885,12 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void compute_surface_integrals_on_face (Real& sintg_1, Real& sintg_x, Real& sintg_y,
-                                       Real& sintg_xy, Real x1, Real y1, Real x2,
-                                       Real y2, Real x3, Real y3) noexcept
+void compute_surface_integrals_on_face (Real& sintg_1, Real& sintg_x,
+                                        Real& sintg_y, Real& sintg_xy,
+                                        Real x1, Real y1, Real x2, Real y2,
+                                        Real x3, Real y3) noexcept
 {
-    Real det = (x2 - x1)*(x3 - y1) - (x3 - x1)*(y2 - y1);
+    Real det = (x2 - x1)*(y3 - y1) - (x3 - x1)*(y2 - y1);
     sintg_1 = 0.5_rt*det;
     sintg_x = det*(x1 + x2 + x3)/6.0_rt;
     sintg_y = det*(y1 + y2 + y3)/6.0_rt;
@@ -6902,9 +6903,274 @@ void compute_surface_integrals_on_face (Real& sintg_1, Real& sintg_x, Real& sint
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+bool extract_two_triangles_on_face (Real& x1, Real& y1,
+                                    Real& x2, Real& y2,
+                                    Real& x3, Real& y3,
+                                    Real& x4, Real& y4,
+                                    Real& x5, Real &y5,
+                                    Real& x6, Real &y6,
+                                    GpuArray<Array<Real,2>, 4>& lo_ipts, int& lo_np,
+                                    GpuArray<Array<Real,2>, 4>& hi_ipts, int& hi_np) noexcept
+{
+    AMREX_ASSERT(lo_np == 2 && hi_np == 2);
+
+    Real xx1 = lo_ipts[0][0];
+    Real xx2 = lo_ipts[1][0];
+    Real yy1 = lo_ipts[0][1];
+    Real yy2 = lo_ipts[1][1];
+
+    Real xx3 = hi_ipts[0][0];
+    Real xx4 = hi_ipts[1][0];
+    Real yy3 = hi_ipts[0][1];
+    Real yy4 = hi_ipts[1][1];
+
+    if (xx2 == xx1) { return false; }
+    if (xx4 == xx3) { return false; }
+
+    Real alo = (yy2 - yy1)/(xx2 - xx1);
+    Real blo = yy1 - alo*xx1;
+
+    Real ahi = (yy4 - yy3)/(xx4 - xx3);
+    Real bhi = yy3 - ahi*xx3;
+
+    if (alo == ahi) { return false; }
+
+    Real xi = -(blo - bhi)/(alo - ahi);
+    Real yi = alo*xi + blo;
+
+    if (xi <= 0.5_rt && xi >= -0.5_rt && yi <= 0.5_rt && yi >= -0.5_rt) {
+        // TODO: Currently can only handle these cases
+        if (xx1 == xx3 && xx1 == -0.5_rt) {
+            if (yy1 > yy3) {
+                x1 = xx1;
+                y1 = yy1;
+                x2 = xx3;
+                y2 = yy3;
+                x3 = xi;
+                y3 = yi;
+            } else {
+                x1 = xx3;
+                y1 = yy3;
+                x2 = xx1;
+                y2 = yy1;
+                x3 = xi;
+                y3 = yi;
+            }
+        }
+
+        if (yy2 == yy4 && yy2 == 0.5_rt) {
+            if (xx2 > xx4) {
+                x4 = xx2;
+                y4 = yy2;
+                x5 = xx4;
+                y5 = yy4;
+                x6 = xi;
+                y6 = yi;
+            } else {
+                x4 = xx4;
+                y4 = yy4;
+                x5 = xx2;
+                y5 = yy2;
+                x6 = xi;
+                y6 = yi;
+            }
+        }
+
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void find_ipts_on_yz_face (int i, int j, int k,
+                           GpuArray<Array<Real,2>, 4>& lo_ipts, int& lo_np,
+                           GpuArray<Array<Real,2>, 4>& hi_ipts, int& hi_np,
+                           Array4<Real const> const& bc,
+                           Array4<Real const> const& bn) noexcept
+{
+    // lo side x =  0.5
+    // hi side x = -0.5
+    //
+    Real lo_Cx = bc(i-1,j,k,0);
+    Real lo_Cy = bc(i-1,j,k,1);
+    Real lo_Cz = bc(i-1,j,k,2);
+    Real lo_nx = bn(i-1,j,k,0);
+    Real lo_ny = bn(i-1,j,k,1);
+    Real lo_nz = bn(i-1,j,k,2);
+
+    Real hi_Cx = bc(i,j,k,0);
+    Real hi_Cy = bc(i,j,k,1);
+    Real hi_Cz = bc(i,j,k,2);
+    Real hi_nx = bn(i,j,k,0);
+    Real hi_ny = bn(i,j,k,1);
+    Real hi_nz = bn(i,j,k,2);
+
+    // y = -0.5
+    {
+        Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cy)*lo_ny)/lo_nz;
+        Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cy)*hi_ny)/hi_nz;
+
+        if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {-0.5_rt,lo_z};}
+        if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {-0.5_rt,hi_z};}
+    }
+
+    // y = 0.5
+    {
+        Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cy)*lo_ny)/lo_nz;
+        Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cy)*hi_ny)/hi_nz;
+
+        if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {0.5_rt,lo_z};}
+        if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {0.5_rt,hi_z};}
+    }
+
+    // z = -0.5
+    {
+        Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+        Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+
+        if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,-0.5_rt};}
+        if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,-0.5_rt};}
+    }
+
+    // z = 0.5
+    {
+        Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+        Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+
+        if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,0.5_rt};}
+        if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,0.5_rt};}
+    }
+}
+
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void find_ipts_on_xz_face (int i, int j, int k,
+                           GpuArray<Array<Real,2>, 4>& lo_ipts, int& lo_np,
+                           GpuArray<Array<Real,2>, 4>& hi_ipts, int& hi_np,
+                           Array4<Real const> const& bc,
+                           Array4<Real const> const& bn) noexcept
+{
+    // lo side x =  0.5
+    // hi side x = -0.5
+    //
+    Real lo_Cx = bc(i,j-1,k,0);
+    Real lo_Cy = bc(i,j-1,k,1);
+    Real lo_Cz = bc(i,j-1,k,2);
+    Real lo_nx = bn(i,j-1,k,0);
+    Real lo_ny = bn(i,j-1,k,1);
+    Real lo_nz = bn(i,j-1,k,2);
+
+    Real hi_Cx = bc(i,j,k,0);
+    Real hi_Cy = bc(i,j,k,1);
+    Real hi_Cz = bc(i,j,k,2);
+    Real hi_nx = bn(i,j,k,0);
+    Real hi_ny = bn(i,j,k,1);
+    Real hi_nz = bn(i,j,k,2);
+
+    // x = -0.5
+    {
+        Real lo_z = lo_Cz -((-0.5_rt-lo_Cx)*lo_nx + ( 0.5_rt-lo_Cy)*lo_ny)/lo_nz;
+        Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cy)*hi_ny)/hi_nz;
+
+        if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {-0.5_rt,lo_z};}
+        if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {-0.5_rt,hi_z};}
+    }
+
+    // x = 0.5
+    {
+        Real lo_z = lo_Cz -((0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cy)*lo_ny)/lo_nz;
+        Real hi_z = hi_Cz -((0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cy)*hi_ny)/hi_nz;
+
+        if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {0.5_rt,lo_z};}
+        if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {0.5_rt,hi_z};}
+    }
+
+    // z = -0.5
+    {
+        Real lo_x = lo_Cx -(( 0.5_rt-lo_Cy)*lo_ny + (-0.5_rt-lo_Cz)*lo_nz)/lo_nx;
+        Real hi_x = hi_Cx -((-0.5_rt-hi_Cy)*hi_ny + (-0.5_rt-hi_Cz)*hi_nz)/hi_nx;
+
+        if (lo_x <= 0.5_rt && lo_x >= -0.5_rt) {lo_ipts[lo_np++] = {lo_x,-0.5_rt};}
+        if (hi_x <= 0.5_rt && hi_x >= -0.5_rt) {hi_ipts[hi_np++] = {hi_x,-0.5_rt};}
+    }
+
+    // z = 0.5
+    {
+        Real lo_x = lo_Cx -(( 0.5_rt-lo_Cy)*lo_ny + (0.5_rt-lo_Cz)*lo_nz)/lo_nx;
+        Real hi_x = hi_Cx -((-0.5_rt-hi_Cy)*hi_ny + (0.5_rt-hi_Cz)*hi_nz)/hi_nx;
+
+        if (lo_x <= 0.5_rt && lo_x >= -0.5_rt) {lo_ipts[lo_np++] = {lo_x,0.5_rt};}
+        if (hi_x <= 0.5_rt && hi_x >= -0.5_rt) {hi_ipts[hi_np++] = {hi_x,0.5_rt};}
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void find_ipts_on_xy_face (int i, int j, int k,
+                           GpuArray<Array<Real,2>, 4>& lo_ipts, int& lo_np,
+                           GpuArray<Array<Real,2>, 4>& hi_ipts, int& hi_np,
+                           Array4<Real const> const& bc,
+                           Array4<Real const> const& bn) noexcept
+{
+    // lo side x =  0.5
+    // hi side x = -0.5
+    //
+    Real lo_Cx = bc(i,j,k-1,0);
+    Real lo_Cy = bc(i,j,k-1,1);
+    Real lo_Cz = bc(i,j,k-1,2);
+    Real lo_nx = bn(i,j,k-1,0);
+    Real lo_ny = bn(i,j,k-1,1);
+    Real lo_nz = bn(i,j,k-1,2);
+
+    Real hi_Cx = bc(i,j,k,0);
+    Real hi_Cy = bc(i,j,k,1);
+    Real hi_Cz = bc(i,j,k,2);
+    Real hi_nx = bn(i,j,k,0);
+    Real hi_ny = bn(i,j,k,1);
+    Real hi_nz = bn(i,j,k,2);
+
+    // x = -0.5
+    {
+        Real lo_y = lo_Cy -((-0.5_rt-lo_Cx)*lo_nx + ( 0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+        Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+
+        if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {-0.5_rt,lo_y};}
+        if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {-0.5_rt,hi_y};}
+    }
+
+    // x = 0.5
+    {
+        Real lo_y = lo_Cy -((0.5_rt-lo_Cx)*lo_nx + ( 0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+        Real hi_y = hi_Cy -((0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+
+        if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {0.5_rt,lo_y};}
+        if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {0.5_rt,hi_y};}
+    }
+
+    // y = -0.5
+    {
+        Real lo_x = lo_Cx -((-0.5_rt-lo_Cy)*lo_ny + ( 0.5_rt-lo_Cz)*lo_nz)/lo_nx;
+        Real hi_x = hi_Cx -((-0.5_rt-hi_Cy)*hi_ny + (-0.5_rt-hi_Cz)*hi_nz)/hi_nx;
+
+        if (lo_x <= 0.5_rt && lo_x >= -0.5_rt) {lo_ipts[lo_np++] = {lo_x,-0.5_rt};}
+        if (hi_x <= 0.5_rt && hi_x >= -0.5_rt) {hi_ipts[hi_np++] = {hi_x,-0.5_rt};}
+    }
+
+    // y = 0.5
+    {
+        Real lo_x = lo_Cx -((0.5_rt-lo_Cy)*lo_ny + ( 0.5_rt-lo_Cz)*lo_nz)/lo_nx;
+        Real hi_x = hi_Cx -((0.5_rt-hi_Cy)*hi_ny + (-0.5_rt-hi_Cz)*hi_nz)/hi_nx;
+
+        if (lo_x <= 0.5_rt && lo_x >= -0.5_rt) {lo_ipts[lo_np++] = {lo_x,0.5_rt};}
+        if (hi_x <= 0.5_rt && hi_x >= -0.5_rt) {hi_ipts[hi_np++] = {hi_x,0.5_rt};}
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real> const& rhs,
                       Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
-                      Array4<Real const> const& bc, Array4<Real const> const& bn,
+                      Array4<Real const> const& bcent, Array4<Real const> const& bnorm,
                       Array4<Real const> const& vfrac, Array4<Real const> const& intg,
                       Array4<Real const> const& eb_vel,
                       Array4<Real const> const& apx, Array4<Real const> const& apy,
@@ -6913,190 +7179,72 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
     if (!msk(i,j,k)) {
 
         if (std::abs(vfrac(i-1,j,k) - intg(i-1,j,k,i_S_1)) >= almostzero ||
-                std::abs(vfrac(i,j,k) - intg(i,j,k,i_S_1)) >= almostzero &&
-                apx(i,j,k) < 1.0_rt) {
+            std::abs(vfrac(i,j,k) - intg(i,j,k,i_S_1)) >= almostzero ) {
 
-            //
-            // Find points of intersection at the common face
-            // lo side x =  0.5
-            // hi side x = -0.5
-            //
-            Real lo_Cx = bc(i-1,j,k,0);
-            Real lo_Cy = bc(i-1,j,k,1);
-            Real lo_Cz = bc(i-1,j,k,2);
-            Real lo_nx = bn(i-1,j,k,0);
-            Real lo_ny = bn(i-1,j,k,1);
-            Real lo_nz = bn(i-1,j,k,2);
-
-            Real hi_Cx = bc(i,j,k,0);
-            Real hi_Cy = bc(i,j,k,1);
-            Real hi_Cz = bc(i,j,k,2);
-            Real hi_nx = bn(i,j,k,0);
-            Real hi_ny = bn(i,j,k,1);
-            Real hi_nz = bn(i,j,k,2);
-
-            GpuArray<Array<Real,2 >, 4> lo_ipts;
-            GpuArray<Array<Real,2 >, 4> hi_ipts;
+            GpuArray<Array<Real,2>, 4> lo_ipts;
+            GpuArray<Array<Real,2>, 4> hi_ipts;
             int lo_np = 0;
             int hi_np = 0;
 
-            // y = -0.5
-            {
-                Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cy)*lo_ny)/lo_nz;
-                Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cy)*hi_ny)/hi_nz;
-
-                if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {-0.5_rt,lo_z};}
-                if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {-0.5_rt,hi_z};}
-            }
-
-            // y = 0.5
-            {
-                Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cy)*lo_ny)/lo_nz;
-                Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cy)*hi_ny)/hi_nz;
-
-                if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {0.5_rt,lo_z};}
-                if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {0.5_rt,hi_z};}
-            }
-
-            // z = -0.5
-            {
-                Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cz)*lo_nz)/lo_ny;
-                Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
-
-                if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,-0.5_rt};}
-                if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,-0.5_rt};}
-            }
-
-            // z = 0.5
-            {
-                Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cz)*lo_nz)/lo_ny;
-                Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cz)*hi_nz)/hi_ny;
-
-                if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,0.5_rt};}
-                if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,0.5_rt};}
-            }
-
-            if (i==19 && j==8 && k==4) {
-                for (int n = 0; n < lo_np; ++n) {
-                    Print() << "lo_ipts[" << n << "] = " << lo_ipts[n][0] << "," << lo_ipts[n][1] << std::endl;
-                }
-                for (int n = 0; n < hi_np; ++n) {
-                    Print() << "hi_ipts[" << n << "] = " << hi_ipts[n][0] << "," << hi_ipts[n][1] << std::endl;
-                }
-            }
+            find_ipts_on_yz_face(i, j, k, lo_ipts, lo_np, hi_ipts, hi_np, bcent, bnorm);
 
             if (lo_np == 2 && hi_np == 2) {
-                Real x0 = lo_ipts[0][0];
-                Real x1 = lo_ipts[1][0];
-                Real y0 = lo_ipts[0][1];
-                Real y1 = lo_ipts[1][1];
 
-                Real x2 = hi_ipts[0][0];
-                Real x3 = hi_ipts[1][0];
-                Real y2 = hi_ipts[0][1];
-                Real y3 = hi_ipts[1][1];
+                Real x1 = 0.;
+                Real y1 = 0.;
+                Real x2 = 0.;
+                Real y2 = 0.;
+                Real x3 = 0.;
+                Real y3 = 0.;
 
-                Real alo = (y1 - y0)/(x1 - x0);
-                Real blo = y0 - alo*x0;
+                Real x4 = 0.;
+                Real y4 = 0.;
+                Real x5 = 0.;
+                Real y5 = 0.;
+                Real x6 = 0.;
+                Real y6 = 0.;
 
-                Real ahi = (y3 - y2)/(x3 - x2);
-                Real bhi = y2 - ahi*x2;
+                bool ret = extract_two_triangles_on_face(
+                        x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,x6,y6,lo_ipts, lo_np, hi_ipts, hi_np);
 
-                Real xi = -(blo - bhi)/(alo - ahi);
-                Real yi = alo*xi + blo;
-
-                if (xi <= 0.5_rt && xi >= -0.5_rt && yi <= 0.5_rt && yi >= -0.5_rt) {
-                    if (i==19 && j==8 && k==4) {
-                        Print() << "POINTS:\n";
-                        Print() << "(" << x0 << "," << y0 << ")\n";
-                        Print() << "(" << x1 << "," << y1 << ")\n";
-                        Print() << "(" << x2 << "," << y2 << ")\n";
-                        Print() << "(" << x3 << "," << y3 << ")\n";
-                        Print() << "(" << xi << "," << yi << ")\n";
-                    }
-
-                    Real X1 = 0._rt;
-                    Real Y1 = 0._rt;
-                    Real X2 = 0._rt;
-                    Real Y2 = 0._rt;
-                    Real X3 = 0._rt;
-                    Real Y3 = 0._rt;
-                    Real sintg_1 = 0.0_rt;
-                    Real sintg_x = 0.0_rt;
-                    Real sintg_y = 0.0_rt;
-                    Real sintg_xy = 0.0_rt;
-
-                    // Triangle 1
+                if (ret) {
                     {
-                        if (x0 == x2 && x0 == -0.5_rt) {
-                            if (y0 > y2) {
-                                // Triangle 1 is (x0,y0), (x2,y2), (xi,yi)
-                                X1 = x0;
-                                Y1 = y0;
-                                X2 = x2;
-                                Y2 = y2;
-                                X3 = xi;
-                                Y3 = yi;
-                            } else if (y2 > y0) {
-                                // Triangle 1 is (x2,y2), (x0,y0), (xi,yi)
-                                X1 = x2;
-                                Y1 = y2;
-                                X2 = x0;
-                                Y2 = y0;
-                                X3 = xi;
-                                Y3 = yi;
-                            }
-                        }
+                        Real sintg_1 = 0.0;
+                        Real sintg_x = 0.;
+                        Real sintg_y = 0.;
+                        Real sintg_xy = 0.;
 
-
-                        compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,X1,
-                                                          Y1,X2,Y2,X3,Y3);
-
+                        compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,
+                                                          x1,y1,x2,y2,x3,y3);
 
                         if (i==19 && j==8 && k==4) {
-                            Print() << "(" << X1 << "," << Y1 << "),(" << X2 << "," << Y2 << "),(" << X3 << "," << Y3 << ")\n";
-                            Print() << "integrals:\n";
-                            Print() << "1: " << sintg_1 << "\n";
-                            Print() << "x: " << sintg_x << "\n";
-                            Print() << "y: " << sintg_y << "\n";
-                            Print() << "xy: " << sintg_xy << "\n";
+                            Print() << "t1 integrals:\n";
+                            Print() << "1: " << sintg_1 << std::endl;
+                            Print() << "x: " << sintg_x << std::endl;
+                            Print() << "y: " << sintg_y << std::endl;
+                            Print() << "xy: " << sintg_xy << std::endl;
                         }
                     }
 
-                    // Triangle 2
                     {
-                        if (y1 == y3 && y1 == 0.5_rt) {
-                            if (x1 > x3) {
-                                // Triangle 1 is (x1,y1), (x3,y3), (xi,yi)
-                                X1 = x1;
-                                Y1 = y1;
-                                X2 = x3;
-                                Y2 = y3;
-                                X3 = xi;
-                                Y3 = yi;
-                            } else if (x3 > x1) {
-                                // Triangle 1 is (x3,y3), (x1,y1), (xi,yi)
-                                X1 = x3;
-                                Y1 = y3;
-                                X2 = x1;
-                                Y2 = y1;
-                                X3 = xi;
-                                Y3 = yi;
-                            }
-                        }
+                        Real sintg_1 = 0.0;
+                        Real sintg_x = 0.;
+                        Real sintg_y = 0.;
+                        Real sintg_xy = 0.;
 
-                        compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,X1,
-                                                          Y1,X2,Y2,X3,Y3);
+                        compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,
+                                                          x4,y4,x5,y5,x6,y6);
 
                         if (i==19 && j==8 && k==4) {
-                            Print() << "(" << X1 << "," << Y1 << "),(" << X2 << "," << Y2 << "),(" << X3 << "," << Y3 << ")\n";
-                            Print() << "integrals:\n";
-                            Print() << "1: " << sintg_1 << "\n";
-                            Print() << "x: " << sintg_x << "\n";
-                            Print() << "y: " << sintg_y << "\n";
-                            Print() << "xy: " << sintg_xy << "\n";
+                            Print() << "t2 integrals:\n";
+                            Print() << "1: " << sintg_1 << std::endl;
+                            Print() << "x: " << sintg_x << std::endl;
+                            Print() << "y: " << sintg_y << std::endl;
+                            Print() << "xy: " << sintg_xy << std::endl;
                         }
                     }
+                } else {
+                    //TODO: These cases
                 }
             }
         }
