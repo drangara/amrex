@@ -6902,13 +6902,14 @@ void compute_surface_integrals_on_face (Real& sintg_1, Real& sintg_x,
                + ((x3 - x1)*(y3 - y1))/12.0_rt);
 }
 
+//TODO: Improve the logic in this routine!!
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 bool extract_two_triangles_on_face (Real& x1, Real& y1,
                                     Real& x2, Real& y2,
                                     Real& x3, Real& y3,
                                     Real& x4, Real& y4,
-                                    Real& x5, Real &y5,
-                                    Real& x6, Real &y6,
+                                    Real& x5, Real& y5,
+                                    Real& x6, Real& y6,
                                     GpuArray<Array<Real,2>, 4>& lo_ipts, int& lo_np,
                                     GpuArray<Array<Real,2>, 4>& hi_ipts, int& hi_np) noexcept
 {
@@ -6940,8 +6941,29 @@ bool extract_two_triangles_on_face (Real& x1, Real& y1,
 
     if (xi <= 0.5_rt && xi >= -0.5_rt && yi <= 0.5_rt && yi >= -0.5_rt) {
         // TODO: Currently can only handle these cases
-        if (xx1 == xx3 && xx1 == -0.5_rt) {
-            if (yy1 > yy3) {
+        // Triangle 1
+        {
+            bool rev_order = false;
+
+            if (xx1 == xx3 && xx1 == -0.5_rt) {
+                if (yy1 < yy3) {
+                    rev_order = true;
+                }
+            } else if (xx1 == xx3 && xx1 == 0.5_rt) {
+                if (yy1 > yy3) {
+                    rev_order = true;
+                }
+            } else if (yy1 == yy3 && yy1 == -0.5_rt) {
+                if (xx1 > xx3) {
+                    rev_order = true;
+                }
+            } else if (yy1 == yy3 && yy1 == 0.5_rt) {
+                if (xx1 < xx3) {
+                    rev_order = true;
+                }
+            }
+
+            if (!rev_order) {
                 x1 = xx1;
                 y1 = yy1;
                 x2 = xx3;
@@ -6958,8 +6980,30 @@ bool extract_two_triangles_on_face (Real& x1, Real& y1,
             }
         }
 
-        if (yy2 == yy4 && yy2 == 0.5_rt) {
-            if (xx2 > xx4) {
+        // Triangle 2
+        {
+
+            bool rev_order = false;
+
+            if (xx2 == xx4 && xx2 == -0.5_rt) {
+                if (yy2 < yy4) {
+                    rev_order = true;
+                }
+            } else if (xx2 == xx4 && xx2 == 0.5_rt) {
+                if (yy2 > yy4) {
+                    rev_order = true;
+                }
+            } else if (yy2 == yy4 && yy2 == -0.5_rt) {
+                if (xx2 > xx4) {
+                    rev_order = true;
+                }
+            } else if (yy2 == yy4 && yy2 == 0.5_rt) {
+                if (xx2 < xx4) {
+                    rev_order = true;
+                }
+            }
+
+            if (!rev_order) {
                 x4 = xx2;
                 y4 = yy2;
                 x5 = xx4;
@@ -7172,14 +7216,14 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                       Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
                       Array4<Real const> const& bcent, Array4<Real const> const& bnorm,
                       Array4<Real const> const& vfrac, Array4<Real const> const& intg,
-                      Array4<Real const> const& eb_vel,
-                      Array4<Real const> const& apx, Array4<Real const> const& apy,
-                      Array4<Real const> const& apz) noexcept
+                      Array4<Real const> const& eb_vel) noexcept
 {
-    if (!msk(i,j,k)) {
-
-        if (std::abs(vfrac(i-1,j,k) - intg(i-1,j,k,i_S_1)) >= almostzero ||
-            std::abs(vfrac(i,j,k) - intg(i,j,k,i_S_1)) >= almostzero ) {
+    if (!msk(i,j,k))
+    {
+        if ( (std::abs(vfrac(i-1,j,k) - intg(i-1,j,k,i_S_1)) >= almostzero ||
+              std::abs(vfrac(i,j,k) - intg(i,j,k,i_S_1)) >= almostzero) &&
+              (eb_vel(i-1,j,k,0) > 0._rt) && (eb_vel(i,j,k,0) > 0._rt) )
+        {
 
             GpuArray<Array<Real,2>, 4> lo_ipts;
             GpuArray<Array<Real,2>, 4> hi_ipts;
@@ -7205,9 +7249,10 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                 Real y6 = 0.;
 
                 bool ret = extract_two_triangles_on_face(
-                        x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,x6,y6,lo_ipts, lo_np, hi_ipts, hi_np);
+                        x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,x6,y6,lo_ipts,lo_np,hi_ipts,hi_np);
 
-                if (ret) {
+                if (ret)
+                {
                     {
                         Real sintg_1 = 0.0;
                         Real sintg_x = 0.;
@@ -7217,13 +7262,9 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                         compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,
                                                           x1,y1,x2,y2,x3,y3);
 
-                        if (i==19 && j==8 && k==4) {
-                            Print() << "t1 integrals:\n";
-                            Print() << "1: " << sintg_1 << std::endl;
-                            Print() << "x: " << sintg_x << std::endl;
-                            Print() << "y: " << sintg_y << std::endl;
-                            Print() << "xy: " << sintg_xy << std::endl;
-                        }
+                        Real fac_eb = 0.25*dxinv[0];
+                        //TODO: Determine sign i.e. RED/BLUE
+                        rhs(i,j,k) += fac_eb*(-eb_vel(i-1,j,k,0))*(sintg_1 - 2._rt*sintg_x - 2._rt*sintg_y + 4*sintg_xy);
                     }
 
                     {
@@ -7235,15 +7276,83 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                         compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,
                                                           x4,y4,x5,y5,x6,y6);
 
-                        if (i==19 && j==8 && k==4) {
-                            Print() << "t2 integrals:\n";
-                            Print() << "1: " << sintg_1 << std::endl;
-                            Print() << "x: " << sintg_x << std::endl;
-                            Print() << "y: " << sintg_y << std::endl;
-                            Print() << "xy: " << sintg_xy << std::endl;
-                        }
+                        Real fac_eb = 0.25*dxinv[0];
+                        //TODO: Determine sign i.e. RED/BLUE
+                        rhs(i,j,k) += fac_eb*eb_vel(i-1,j,k,0)*(sintg_1 - 2._rt*sintg_x - 2._rt*sintg_y + 4*sintg_xy);
+
                     }
-                } else {
+                }
+                else
+                {
+                    //TODO: These cases
+                }
+            }
+        }
+
+        if ( (std::abs(vfrac(i-1,j-1,k) - intg(i-1,j-1,k,i_S_1)) >= almostzero ||
+              std::abs(vfrac(i,j-1,k) - intg(i,j-1,k,i_S_1)) >= almostzero) &&
+              (eb_vel(i-1,j-1,k,0) > 0._rt) && (eb_vel(i,j-1,k,0) > 0._rt) )
+        {
+
+            GpuArray<Array<Real,2>, 4> lo_ipts;
+            GpuArray<Array<Real,2>, 4> hi_ipts;
+            int lo_np = 0;
+            int hi_np = 0;
+
+            find_ipts_on_yz_face(i, j-1, k, lo_ipts, lo_np, hi_ipts, hi_np, bcent, bnorm);
+
+            if (lo_np == 2 && hi_np == 2) {
+
+                Real x1 = 0.;
+                Real y1 = 0.;
+                Real x2 = 0.;
+                Real y2 = 0.;
+                Real x3 = 0.;
+                Real y3 = 0.;
+
+                Real x4 = 0.;
+                Real y4 = 0.;
+                Real x5 = 0.;
+                Real y5 = 0.;
+                Real x6 = 0.;
+                Real y6 = 0.;
+
+                bool ret = extract_two_triangles_on_face(
+                        x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,x6,y6,lo_ipts,lo_np,hi_ipts,hi_np);
+
+                if (ret)
+                {
+                    {
+                        Real sintg_1 = 0.0;
+                        Real sintg_x = 0.;
+                        Real sintg_y = 0.;
+                        Real sintg_xy = 0.;
+
+                        compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,
+                                                          x1,y1,x2,y2,x3,y3);
+
+                        Real fac_eb = 0.25*dxinv[0];
+                        //TODO: Determine sign i.e. RED/BLUE
+                        rhs(i,j,k) += fac_eb*(-eb_vel(i-1,j,k,0))*(sintg_1 + 2._rt*sintg_x - 2._rt*sintg_y - 4*sintg_xy);
+                    }
+
+                    {
+                        Real sintg_1 = 0.0;
+                        Real sintg_x = 0.;
+                        Real sintg_y = 0.;
+                        Real sintg_xy = 0.;
+
+                        compute_surface_integrals_on_face(sintg_1,sintg_x,sintg_y,sintg_xy,
+                                                          x4,y4,x5,y5,x6,y6);
+
+                        Real fac_eb = 0.25*dxinv[0];
+                        //TODO: Determine sign i.e. RED/BLUE
+                        rhs(i,j,k) += fac_eb*eb_vel(i-1,j,k,0)*(sintg_1 + 2._rt*sintg_x - 2._rt*sintg_y - 4*sintg_xy);
+
+                    }
+                }
+                else
+                {
                     //TODO: These cases
                 }
             }
