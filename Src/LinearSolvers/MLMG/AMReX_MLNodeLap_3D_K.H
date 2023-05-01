@@ -6907,11 +6907,14 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 bool extract_two_triangles_on_face (Real& x1, Real& y1,
                                     Real& x2, Real& y2,
                                     Real& x3, Real& y3,
+                                    bool& t1_pos,
                                     Real& x4, Real& y4,
                                     Real& x5, Real& y5,
                                     Real& x6, Real& y6,
-                                    GpuArray<Array<Real,2>, 4>& lo_ipts, int& lo_np,
-                                    GpuArray<Array<Real,2>, 4>& hi_ipts, int& hi_np) noexcept
+                                    bool& t2_pos,
+                                    GpuArray<Array <Real,2>, 4> const& lo_ipts, int lo_np,
+                                    GpuArray<Array <Real,2>, 4> const& hi_ipts, int hi_np,
+                                    Real lo_nx, Real lo_ny) noexcept
 {
     AMREX_ASSERT(lo_np == 2 && hi_np == 2);
 
@@ -6944,22 +6947,52 @@ bool extract_two_triangles_on_face (Real& x1, Real& y1,
         // Triangle 1
         {
             bool rev_order = false;
+            t1_pos = true;
 
             if (xx1 == xx3 && xx1 == -0.5_rt) {
                 if (yy1 < yy3) {
                     rev_order = true;
+                    if (lo_ny > 0._rt) {
+                        t1_pos = false;
+                    }
+                } else {
+                    if (lo_ny < 0._rt) {
+                        t1_pos = false;
+                    }
                 }
             } else if (xx1 == xx3 && xx1 == 0.5_rt) {
                 if (yy1 > yy3) {
                     rev_order = true;
+                    if (lo_ny < 0._rt) {
+                        t1_pos = false;
+                    }
+                } else {
+                    if (lo_ny > 0._rt) {
+                        t1_pos = false;
+                    }
                 }
             } else if (yy1 == yy3 && yy1 == -0.5_rt) {
                 if (xx1 > xx3) {
                     rev_order = true;
+                    if (lo_nx < 0._rt) {
+                        t1_pos = false;
+                    }
+                } else {
+                    if (lo_nx > 0._rt) {
+                        t1_pos = false;
+                    }
                 }
+
             } else if (yy1 == yy3 && yy1 == 0.5_rt) {
                 if (xx1 < xx3) {
                     rev_order = true;
+                    if (lo_nx > 0._rt) {
+                        t1_pos = false;
+                    }
+                } else {
+                    if (lo_nx < 0._rt) {
+                        t1_pos = false;
+                    }
                 }
             }
 
@@ -6984,22 +7017,51 @@ bool extract_two_triangles_on_face (Real& x1, Real& y1,
         {
 
             bool rev_order = false;
+            t2_pos = true;
 
             if (xx2 == xx4 && xx2 == -0.5_rt) {
                 if (yy2 < yy4) {
                     rev_order = true;
+                    if (lo_ny > 0._rt) {
+                        t2_pos = false;
+                    }
+                } else {
+                    if (lo_ny < 0._rt) {
+                        t2_pos = false;
+                    }
                 }
             } else if (xx2 == xx4 && xx2 == 0.5_rt) {
                 if (yy2 > yy4) {
                     rev_order = true;
+                    if (lo_ny < 0._rt) {
+                        t2_pos = false;
+                    }
+                } else {
+                    if (lo_ny > 0._rt) {
+                        t2_pos = false;
+                    }
                 }
             } else if (yy2 == yy4 && yy2 == -0.5_rt) {
                 if (xx2 > xx4) {
                     rev_order = true;
+                    if (lo_nx < 0._rt) {
+                        t2_pos = false;
+                    }
+                } else {
+                    if (lo_nx > 0._rt) {
+                        t2_pos = false;
+                    }
                 }
             } else if (yy2 == yy4 && yy2 == 0.5_rt) {
                 if (xx2 < xx4) {
                     rev_order = true;
+                    if (lo_nx > 0._rt) {
+                        t2_pos = false;
+                    }
+                } else {
+                    if (lo_nx < 0._rt) {
+                        t2_pos = false;
+                    }
                 }
             }
 
@@ -7248,8 +7310,12 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                 Real x6 = 0.;
                 Real y6 = 0.;
 
+                bool t1_pos = true;
+                bool t2_pos = true;
+
                 bool ret = extract_two_triangles_on_face(
-                        x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,x6,y6,lo_ipts,lo_np,hi_ipts,hi_np);
+                        x1,y1,x2,y2,x3,y3,t1_pos,x4,y4,x5,y5,x6,y6,t2_pos,lo_ipts,lo_np,hi_ipts,hi_np,
+                        bnorm(i-1,j,k,1),bnorm(i-1,j,k,2));
 
                 if (ret)
                 {
@@ -7263,8 +7329,8 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                                                           x1,y1,x2,y2,x3,y3);
 
                         Real fac_eb = 0.25*dxinv[0];
-                        //TODO: Determine sign i.e. RED/BLUE
-                        rhs(i,j,k) += fac_eb*(-eb_vel(i-1,j,k,0))*(sintg_1 - 2._rt*sintg_x - 2._rt*sintg_y + 4*sintg_xy);
+                        if (!t1_pos) fac_eb = fac_eb*(-1._rt);
+                        rhs(i,j,k) += fac_eb*eb_vel(i-1,j,k,0)*(sintg_1 - 2._rt*sintg_x - 2._rt*sintg_y + 4*sintg_xy);
                     }
 
                     {
@@ -7277,7 +7343,7 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                                                           x4,y4,x5,y5,x6,y6);
 
                         Real fac_eb = 0.25*dxinv[0];
-                        //TODO: Determine sign i.e. RED/BLUE
+                        if (!t2_pos) fac_eb = fac_eb*(-1._rt);
                         rhs(i,j,k) += fac_eb*eb_vel(i-1,j,k,0)*(sintg_1 - 2._rt*sintg_x - 2._rt*sintg_y + 4*sintg_xy);
 
                     }
@@ -7285,6 +7351,7 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                 else
                 {
                     //TODO: These cases
+                    Abort();
                 }
             }
         }
@@ -7317,8 +7384,12 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                 Real x6 = 0.;
                 Real y6 = 0.;
 
+                bool t1_pos = true;
+                bool t2_pos = true;
+
                 bool ret = extract_two_triangles_on_face(
-                        x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,x6,y6,lo_ipts,lo_np,hi_ipts,hi_np);
+                        x1,y1,x2,y2,x3,y3,t1_pos,x4,y4,x5,y5,x6,y6,t2_pos,lo_ipts,lo_np,hi_ipts,hi_np,
+                        bnorm(i-1,j-1,k,1),bnorm(i-1,j-1,k,2));
 
                 if (ret)
                 {
@@ -7332,8 +7403,8 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                                                           x1,y1,x2,y2,x3,y3);
 
                         Real fac_eb = 0.25*dxinv[0];
-                        //TODO: Determine sign i.e. RED/BLUE
-                        rhs(i,j,k) += fac_eb*(-eb_vel(i-1,j,k,0))*(sintg_1 + 2._rt*sintg_x - 2._rt*sintg_y - 4*sintg_xy);
+                        if (!t1_pos) fac_eb = fac_eb*(-1._rt);
+                        rhs(i,j,k) += fac_eb*eb_vel(i-1,j-1,k,0)*(sintg_1 + 2._rt*sintg_x - 2._rt*sintg_y - 4*sintg_xy);
                     }
 
                     {
@@ -7346,14 +7417,15 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                                                           x4,y4,x5,y5,x6,y6);
 
                         Real fac_eb = 0.25*dxinv[0];
-                        //TODO: Determine sign i.e. RED/BLUE
-                        rhs(i,j,k) += fac_eb*eb_vel(i-1,j,k,0)*(sintg_1 + 2._rt*sintg_x - 2._rt*sintg_y - 4*sintg_xy);
+                        if (!t2_pos) fac_eb = fac_eb*(-1._rt);
+                        rhs(i,j,k) += fac_eb*eb_vel(i-1,j-1,k,0)*(sintg_1 + 2._rt*sintg_x - 2._rt*sintg_y - 4*sintg_xy);
 
                     }
                 }
                 else
                 {
                     //TODO: These cases
+                    Abort();
                 }
             }
         }
