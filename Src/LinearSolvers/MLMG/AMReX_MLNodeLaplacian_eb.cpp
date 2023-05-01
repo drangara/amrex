@@ -3,6 +3,7 @@
 
 #ifdef AMREX_USE_EB
 #include <AMReX_algoim.H>
+#include <AMReX_mmintg.H>
 #endif
 
 #ifdef AMREX_USE_OMP
@@ -146,6 +147,25 @@ MLNodeLaplacian::buildSurfaceIntegral ()
     {
         if (dynamic_cast<EBFArrayBoxFactory const*>(m_factory[amrlev][0].get())) {
             amrex::algoim::compute_surface_integrals(*m_surface_integral[amrlev]);
+        }
+    }
+#endif
+}
+
+void
+MLNodeLaplacian::buildMismatchedIntegral ()
+{
+    if (m_mismatched_integral_built) return;
+
+    BL_PROFILE("MLNodeLaplacian::buildMismatchedIntegral()");
+
+    m_mismatched_integral_built = true;
+
+#if (AMREX_SPACEDIM == 3)
+    for (int amrlev = 0; amrlev < m_num_amr_levels; ++amrlev)
+    {
+        if (dynamic_cast<EBFArrayBoxFactory const*>(m_factory[amrlev][0].get())) {
+            amrex::mismatched_intg::compute_mmintegral(m_mmintegral[amrlev]);
         }
     }
 #endif

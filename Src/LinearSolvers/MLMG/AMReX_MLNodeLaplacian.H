@@ -141,6 +141,7 @@ public :
 #ifdef AMREX_USE_EB
     void buildIntegral ();
     void buildSurfaceIntegral ();
+    void buildMismatchedIntegral ();
 
     // Tells the solver that EB boundaries have inflow specified by "eb_vel"
     void setEBInflowVelocity (int amrlev, const MultiFab& eb_vel);
@@ -200,6 +201,10 @@ private:
     bool m_surface_integral_built = false;
     bool m_build_surface_integral = false;
     Vector<std::unique_ptr<MultiFab> > m_eb_vel_dot_n;
+
+    Vector<Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> > m_mmintegral;
+    bool m_mismatched_integral_built = false;
+    bool m_build_mismatched_integral = false;
     Vector<std::unique_ptr<MultiFab> > m_eb_vel;
 #endif
 

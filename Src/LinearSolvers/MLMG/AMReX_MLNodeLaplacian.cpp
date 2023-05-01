@@ -5,6 +5,7 @@
 #ifdef AMREX_USE_EB
 #include <AMReX_EBMultiFabUtil.H>
 #include <AMReX_algoim.H>
+#include <AMReX_mmintg.H>
 #endif
 
 #ifdef AMREX_USE_OMP
@@ -85,6 +86,7 @@ MLNodeLaplacian::define (const Vector<Geometry>& a_geom,
 #endif
     m_integral.resize(m_num_amr_levels);
     m_surface_integral.resize(m_num_amr_levels);
+    m_mmintegral.resize(m_num_amr_levels);
     m_eb_vel_dot_n.resize(m_num_amr_levels);
     m_eb_vel.resize(m_num_amr_levels);
     for (int amrlev = 0; amrlev < m_num_amr_levels; ++amrlev)
@@ -1072,12 +1074,27 @@ MLNodeLaplacian::setEBInflowVelocity (int amrlev, const MultiFab& eb_vel)
 #if (AMREX_SPACEDIM == 2)
     const int ncomp_si = 3;
 #else
-    const int ncomp_si = algoim::numSurfIntgs;
+    const int ncomp_si  = algoim::numSurfIntgs;
+    const int ncomp_mmi = mismatched_intg::numMmIntgs;
 #endif
     m_surface_integral[amrlev] = std::make_unique<MultiFab>(m_grids[amrlev][0],
                                                     m_dmap[amrlev][0],
                                                     ncomp_si, 1, MFInfo(),
                                                     *m_factory[amrlev][0]);
+
+#if (AMREX_SPACEDIM == 3)
+
+    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+        m_mmintegral[amrlev][idim] = std::make_unique<MultiFab>(convert(m_grids[amrlev][0],
+                                                                        IntVect::TheDimensionVector(idim)),
+                                                        m_dmap[amrlev][0],
+                                                        ncomp_mmi, 1, MFInfo(),
+                                                        *m_factory[amrlev][0]);
+    }
+
+    m_build_mismatched_integral = true;
+#endif
+
     // Turn on flag for building surface integrals
     m_build_surface_integral = true;
 }
