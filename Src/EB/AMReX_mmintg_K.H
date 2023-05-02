@@ -272,12 +272,17 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void compute_mmintg_on_yz_face(int i, int j, int k,
                                Array4<Real> const& mmintg_x,
                                Array4<Real const> const& bcent,
-                               Array4<Real const> const& bnorm) noexcept
+                               Array4<Real const> const& bnorm,
+                               Array4<EBCellFlag const> const& flag) noexcept
 {
     mmintg_x(i,j,k, i_M_1)  = 0._rt;
     mmintg_x(i,j,k, i_M_x)  = 0._rt;
     mmintg_x(i,j,k, i_M_y)  = 0._rt;
     mmintg_x(i,j,k, i_M_xy) = 0._rt;
+
+    if (flag(i-1,j,k).isRegular() || flag(i-1,j,k).isCovered()) {
+        return;
+    }
 
     // lo side x =  0.5
     // hi side x = -0.5
@@ -344,17 +349,6 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
         extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
                                   lo_ny, lo_nz);
     }
-
-    /*if (i==23 && j==3 && k==5) {
-        Print() << lo_np << std::endl;
-        Print() << hi_np << std::endl;
-        Print() << lo_ipts[0][0] << "," << lo_ipts[0][1] << std::endl;
-        Print() << lo_ipts[1][0] << "," << lo_ipts[1][1] << std::endl;
-        Print() << hi_ipts[0][0] << "," << hi_ipts[0][1] << std::endl;
-        Print() << hi_ipts[1][0] << "," << hi_ipts[1][1] << std::endl;
-        Print() << nt << std::endl;
-        Print() << "\n\n";
-    }*/
 
     for (int n = 0; n < nt; ++n) {
         add_to_mmintg(i,j,k,mmintg_x,triangles[n]);

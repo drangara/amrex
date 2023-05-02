@@ -83,7 +83,7 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
                             for (int n = 0; n < numMmIntgs; ++n) mmintg(i,j,k,n) = 0.0;
                         } else {
                             if(idim == 0) {
-                                compute_mmintg_on_yz_face(i,j,k,mmintg,bc,bn);
+                                compute_mmintg_on_yz_face(i,j,k,mmintg,bc,bn,fg);
                             }
                         }
                     }
