@@ -6898,6 +6898,7 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
 {
     if (!msk(i,j,k))
     {
+
         Real fac_eb = 0.25*dxinv[0];
 
         rhs(i,j,k) +=
@@ -6913,7 +6914,6 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
             + 2._rt*mmintg_x(i,j-1,k,i_M_x)
             - 2._rt*mmintg_x(i,j-1,k,i_M_y)
             - 4._rt*mmintg_x(i,j-1,k,i_M_xy));
-
     }
 }
 

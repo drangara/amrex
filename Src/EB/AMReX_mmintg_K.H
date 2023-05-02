@@ -145,20 +145,125 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
 
     if (xi <= 0.5_rt && xi >= -0.5_rt && yi <= 0.5_rt && yi >= -0.5_rt) {
 
-        if ((x1 == x3) || (y1 == y3)) {
-            EBTriangle t1;
-            t1.x = {x1, x3, xi};
-            t1.y = {y1, y3, yi};
-            order_triangle(t1, lo_nx, lo_ny);
-            triangles[nt++] = t1;
+        bool p1 = false;
+        bool p2 = false;
+        bool p3 = false;
+        bool p4 = false;
+
+        if (    ((x1 == x3) && (std::abs(x1) == 0.5_rt))
+             || ((y1 == y3) && (std::abs(y1) == 0.5_rt))) {
+            EBTriangle t;
+            t.x = {x1, x3, xi};
+            t.y = {y1, y3, yi};
+            order_triangle(t, lo_nx, lo_ny);
+            triangles[nt++] = t;
+            p1 = true;
+            p3 = true;
         }
 
-        if ((x2 == x4) || (y2 == y4)) {
+        if (   ((x2 == x4) && (std::abs(x2) == 0.5_rt))
+            || ((y2 == y4) && (std::abs(y2) == 0.5_rt))) {
+            EBTriangle t;
+            t.x = {x2, x4, xi};
+            t.y = {y2, y4, yi};
+            order_triangle(t, lo_nx, lo_ny);
+            triangles[nt++] = t;
+            p2 = true;
+            p4 = true;
+        }
+
+        if (   ((x2 == x3) && (std::abs(x2) == 0.5_rt))
+             ||((y2 == y3) && (std::abs(y2) == 0.5_rt))) {
+            EBTriangle t;
+            t.x = {x2, x3, xi};
+            t.y = {y2, y3, yi};
+            order_triangle(t, lo_nx, lo_ny);
+            triangles[nt++] = t;
+            p2 = true;
+            p3 = true;
+        }
+
+        if (   ((x1 == x4) && (std::abs(x1) == 0.5_rt))
+            || ((y1 == y4) && (std::abs(y1) == 0.5_rt))) {
+            EBTriangle t;
+            t.x = {x1, x4, xi};
+            t.y = {y1, y4, yi};
+            order_triangle(t, lo_nx, lo_ny);
+            triangles[nt++] = t;
+            p1 = true;
+            p4 = true;
+        }
+
+        if (y2 == -0.5_rt && x3 == -0.5_rt && !p2 && !p3) {
+            EBTriangle t1;
+            t1.x = {x2, -0.5_rt, xi};
+            t1.y = {y2, -0.5_rt, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
             EBTriangle t2;
-            t2.x = {x2, x4, xi};
-            t2.y = {y2, y4, yi};
+            t2.x = {x3, -0.5_rt, xi};
+            t2.y = {y3, -0.5_rt, yi};
             order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
             triangles[nt++] = t2;
+
+            p2 = true;
+            p3 = true;
+        }
+
+        if (y2 == -0.5_rt && x4 == 0.5_rt && !p2 && !p4) {
+            EBTriangle t1;
+            t1.x = {x2,  0.5_rt, xi};
+            t1.y = {y2, -0.5_rt, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x4,  0.5_rt, xi};
+            t2.y = {y4, -0.5_rt, yi};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            p2 = true;
+            p4 = true;
+        }
+
+       if (x2 ==  0.5_rt && y4 == -0.5_rt && !p2 && !p4) {
+            EBTriangle t1;
+            t1.x = {x2,  0.5_rt, xi};
+            t1.y = {y2, -0.5_rt, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x4,  0.5_rt, xi};
+            t2.y = {y4, -0.5_rt, yi};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            p2 = true;
+            p4 = true;
+        }
+
+       if (x1 ==  -0.5_rt && y4 == -0.5_rt && !p1 && !p4) {
+            EBTriangle t1;
+            t1.x = {x1, -0.5_rt, xi};
+            t1.y = {y1, -0.5_rt, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x4, -0.5_rt, xi};
+            t2.y = {y4, -0.5_rt, yi};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            p1 = true;
+            p4 = true;
         }
     }
 }
@@ -237,6 +342,15 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
 
     extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
                               lo_ny, lo_nz);
+
+    if (i==23 && j==3 && k==5) {
+        Print() << lo_ipts[0][0] << "," << lo_ipts[0][1] << std::endl;
+        Print() << lo_ipts[1][0] << "," << lo_ipts[1][1] << std::endl;
+        Print() << hi_ipts[0][0] << "," << hi_ipts[0][1] << std::endl;
+        Print() << hi_ipts[1][0] << "," << hi_ipts[1][1] << std::endl;
+        Print() << nt << std::endl;
+        Print() << "\n\n";
+    }
 
     for (int n = 0; n < nt; ++n) {
         add_to_mmintg(i,j,k,mmintg_x,triangles[n]);
