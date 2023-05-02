@@ -6902,18 +6902,32 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
         Real fac_eb = 0.25*dxinv[0];
 
         rhs(i,j,k) +=
-            fac_eb*eb_vel(i-1,j,k,0)*(
+               fac_eb*eb_vel(i,j,k,0)*(
                     mmintg_x(i,j,k,i_M_1)
             - 2._rt*mmintg_x(i,j,k,i_M_x)
             - 2._rt*mmintg_x(i,j,k,i_M_y)
             + 4._rt*mmintg_x(i,j,k,i_M_xy));
 
         rhs(i,j,k) +=
-            fac_eb*eb_vel(i-1,j-1,k,0)*(
+               fac_eb*eb_vel(i,j-1,k,0)*(
                     mmintg_x(i,j-1,k,i_M_1)
             + 2._rt*mmintg_x(i,j-1,k,i_M_x)
             - 2._rt*mmintg_x(i,j-1,k,i_M_y)
             - 4._rt*mmintg_x(i,j-1,k,i_M_xy));
+
+        rhs(i,j,k) +=
+               fac_eb*eb_vel(i,j,k-1,0)*(
+                    mmintg_x(i,j,k-1,i_M_1)
+            - 2._rt*mmintg_x(i,j,k-1,i_M_x)
+            - 2._rt*mmintg_x(i,j,k-1,i_M_y)
+            + 4._rt*mmintg_x(i,j,k-1,i_M_xy));
+
+        rhs(i,j,k) +=
+               fac_eb*eb_vel(i,j-1,k-1,0)*(
+                    mmintg_x(i,j-1,k-1,i_M_1)
+            - 2._rt*mmintg_x(i,j-1,k-1,i_M_x)
+            + 2._rt*mmintg_x(i,j-1,k-1,i_M_y)
+            - 4._rt*mmintg_x(i,j-1,k-1,i_M_xy));
     }
 }
 
