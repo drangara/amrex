@@ -340,10 +340,12 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
     GpuArray<EBTriangle, 4> triangles;
     int nt = 0;
 
-    extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
-                              lo_ny, lo_nz);
+    if (lo_np == 2 && hi_np == 2) {
+        extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
+                                  lo_ny, lo_nz);
+    }
 
-    /*if (i==23 && j==2 && k==4) {
+    /*if (i==23 && j==3 && k==5) {
         Print() << lo_np << std::endl;
         Print() << hi_np << std::endl;
         Print() << lo_ipts[0][0] << "," << lo_ipts[0][1] << std::endl;
