@@ -144,17 +144,22 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
     Real yi = alo*xi + blo;
 
     if (xi <= 0.5_rt && xi >= -0.5_rt && yi <= 0.5_rt && yi >= -0.5_rt) {
-        EBTriangle t1;
-        t1.x = {x1, x3, xi};
-        t1.y = {y1, y3, yi};
-        order_triangle(t1, lo_nx, lo_ny);
-        triangles[nt++] = t1;
 
-        EBTriangle t2;
-        t2.x = {x2, x4, xi};
-        t2.y = {y2, y4, yi};
-        order_triangle(t2, lo_nx, lo_ny);
-        triangles[nt++] = t2;
+        if ((x1 == x3) || (y1 == y3)) {
+            EBTriangle t1;
+            t1.x = {x1, x3, xi};
+            t1.y = {y1, y3, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+        }
+
+        if ((x2 == x4) || (y2 == y4)) {
+            EBTriangle t2;
+            t2.x = {x2, x4, xi};
+            t2.y = {y2, y4, yi};
+            order_triangle(t2, lo_nx, lo_ny);
+            triangles[nt++] = t2;
+        }
     }
 }
 
