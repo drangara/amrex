@@ -396,6 +396,58 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
             t2.sign = t1.sign;
             triangles[nt++] = t2;
         }
+
+        if (x1 == -0.5_rt && y2 == 0.5_rt && x3 == -0.5_rt && y4 == 0.5_rt) {
+            EBTriangle t1;
+            t1.x = {x1, x3, x2};
+            t1.y = {y1, y3, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (y1 < y3) {
+                if (lo_ny > 0._rt) {
+                    t1.sign = false;
+                }
+            } else {
+                if (lo_ny < 0._rt) {
+                    t1.sign = false;
+                }
+            }
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x2, x4, x3};
+            t2.y = {y2, y4, y3};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+        }
+
+        if (x1 == 0.5_rt && y2 == -0.5_rt && x3 == 0.5_rt && y4 == -0.5_rt) {
+            EBTriangle t1;
+            t1.x = {x1, x3, x2};
+            t1.y = {y1, y3, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (y1 > y3) {
+                if (lo_ny < 0._rt) {
+                    t1.sign = false;
+                }
+            } else {
+                if (lo_ny > 0._rt) {
+                    t1.sign = false;
+                }
+            }
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x2, x4, x3};
+            t2.y = {y2, y4, y3};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+        }
     }
 }
 
@@ -479,6 +531,17 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
     if (lo_np == 2 && hi_np == 2) {
         extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
                                   lo_ny, lo_nz);
+    }
+
+    if (i==17 && j==8 && k==7) {
+        Print() << lo_np << std::endl;
+        Print() << hi_np << std::endl;
+        Print() << lo_ipts[0][0] << "," << lo_ipts[0][1] << std::endl;
+        Print() << lo_ipts[1][0] << "," << lo_ipts[1][1] << std::endl;
+        Print() << hi_ipts[0][0] << "," << hi_ipts[0][1] << std::endl;
+        Print() << hi_ipts[1][0] << "," << hi_ipts[1][1] << std::endl;
+        Print() << nt << std::endl;
+        Print() << "\n\n";
     }
 
     for (int n = 0; n < nt; ++n) {

@@ -1064,10 +1064,19 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
                             add_eb_flow_contrib_from_mismatched_faces(i,j,k,rhsarr,dmskarr,
                                 dxinvarr,mmintgxarr,eb_vel);
 
-                            if (std::abs(rhsarr(i,j,k)) > 1.e-6) {
+                            if (i==19 && j==10 && k==5) {
+                                Print() << "rhs" << IntVect(i,j,k) << "=" << rhsarr(i,j,k) << std::endl;
+                            }
+
+                            if (i==20 && j==10 && k==5) {
+                                Print() << "rhs" << IntVect(i,j,k) << "=" << rhsarr(i,j,k) << std::endl;
+                            }
+
+                            if (std::abs(rhsarr(i,j,k)) > 1.e-10) {
                                 Print() << "ijk=" << IntVect(i,j,k) << ", rhs=" << rhsarr(i,j,k) << std::endl;
                             }
                         });
+                        Abort();
 #endif
                     }
                 }
@@ -1313,7 +1322,6 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
     }
 #endif
 #endif
-    Abort();
 }
 
 }
