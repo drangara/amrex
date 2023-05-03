@@ -111,6 +111,7 @@ void add_to_mmintg (int i, int j, int k,
 
 }
 
+//TODO: Improve this routine. Too many special cases!!
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
                                 GpuArray<Array <Real,2>, 4> const& lo_ipts, int lo_np,
@@ -129,6 +130,9 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
     Real y3 = hi_ipts[0][1];
     Real y4 = hi_ipts[1][1];
 
+    if (x1 == x3 && y1 == y3 && x2 == x4 && y2 == y4 ) { return; }
+    if (x1 == x4 && y1 == y4 && x2 == x3 && y2 == y3 ) { return; }
+
     if (x2 == x1) { return; }
     if (x4 == x3) { return; }
 
@@ -138,9 +142,11 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
     Real ahi = (y4 - y3)/(x4 - x3);
     Real bhi = y3 - ahi*x3;
 
-    if (alo == ahi) { return; }
+    Real xi = 1.0_rt;
+    if (alo != ahi) {
+        xi = -(blo - bhi)/(alo - ahi);
+    }
 
-    Real xi = -(blo - bhi)/(alo - ahi);
     Real yi = alo*xi + blo;
 
     if (xi <= 0.5_rt && xi >= -0.5_rt && yi <= 0.5_rt && yi >= -0.5_rt) {
@@ -336,6 +342,59 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
 
             p2 = true;
             p4 = true;
+        }
+    } else {
+
+        if (x1 == 0.5_rt && y2 == 0.5_rt && x3 == 0.5_rt && y4 == 0.5_rt) {
+            EBTriangle t1;
+            t1.x = {x1, x3, x2};
+            t1.y = {y1, y3, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (y1 > y3) {
+                if (lo_ny < 0._rt) {
+                    t1.sign = false;
+                }
+            } else {
+                if (lo_ny > 0._rt) {
+                    t1.sign = false;
+                }
+            }
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x2, x4, x3};
+            t2.y = {y2, y4, y3};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+        }
+
+        if (x1 == -0.5_rt && y2 == -0.5_rt && x3 == -0.5_rt && y4 == -0.5_rt) {
+            EBTriangle t1;
+            t1.x = {x1, x3, x2};
+            t1.y = {y1, y3, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (y1 < y3) {
+                if (lo_ny > 0._rt) {
+                    t1.sign = false;
+                }
+            } else {
+                if (lo_ny < 0._rt) {
+                    t1.sign = false;
+                }
+            }
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x2, x4, x3};
+            t2.y = {y2, y4, y3};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
         }
     }
 }

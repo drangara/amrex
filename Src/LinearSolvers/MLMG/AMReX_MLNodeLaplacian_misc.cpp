@@ -1313,6 +1313,7 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
     }
 #endif
 #endif
+    Abort();
 }
 
 }
