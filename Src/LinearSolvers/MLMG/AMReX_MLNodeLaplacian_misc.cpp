@@ -1066,7 +1066,7 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
 
                             // These are the nodes I have verfied
                             // Shouldn't break these!
-                            if (i==19 && j==8 && k==4) {
+                            /*if (i==19 && j==8 && k==4) {
                                 Print() << "rhs(19,8,4)=" << rhsarr(i,j,k) << std::endl;
                             }
                             if (i==20 && j==8 && k==4) {
@@ -1078,6 +1078,25 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
                             if (i==19 && j==9 && k==4) {
                                 Print() << "rhs(19,9,4)=" << rhsarr(i,j,k) << std::endl;
                             }
+                            if (i==23 && j==3 && k==5) {
+                                Print() << "rhs(23,3,5)=" << rhsarr(i,j,k) << std::endl;
+                            }
+                            if (i==23 && j==4 && k==5) {
+                                Print() << "rhs(23,4,5)=" << rhsarr(i,j,k) << std::endl;
+                            }
+                            if (i==23 && j==4 && k==11) {
+                                Print() << "rhs(23,4,11)=" << rhsarr(i,j,k) << std::endl;
+                            }
+                            if (i==25 && j==4 && k==11) {
+                                Print() << "rhs(25,4,11)=" << rhsarr(i,j,k) << std::endl;
+                            }
+                            if (i==20 && j==8 && k==11) {
+                                Print() << "rhs(20,8,11)=" << rhsarr(i,j,k) << std::endl;
+                            }
+                            if (i==28 && j==8 && k==11) {
+                                Print() << "rhs(20,8,11)=" << rhsarr(i,j,k) << std::endl;
+                            }*/
+
 
                             if (std::abs(rhsarr(i,j,k)) > 1.e-6) {
                                 Print() << "ijk=" << IntVect(i,j,k) << ", rhs=" << rhsarr(i,j,k) << std::endl;

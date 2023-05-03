@@ -212,6 +212,24 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
             p3 = true;
         }
 
+        if (y2 == 0.5_rt && x3 == -0.5_rt && !p2 && !p3) {
+            EBTriangle t1;
+            t1.x = {x2, -0.5_rt, xi};
+            t1.y = {y2,  0.5_rt, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x3, -0.5_rt, xi};
+            t2.y = {y3,  0.5_rt, yi};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            p2 = true;
+            p3 = true;
+        }
+
         if (y2 == -0.5_rt && x4 == 0.5_rt && !p2 && !p4) {
             EBTriangle t1;
             t1.x = {x2,  0.5_rt, xi};
@@ -230,7 +248,7 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
             p4 = true;
         }
 
-       if (x2 ==  0.5_rt && y4 == -0.5_rt && !p2 && !p4) {
+        if (x2 ==  0.5_rt && y4 == -0.5_rt && !p2 && !p4) {
             EBTriangle t1;
             t1.x = {x2,  0.5_rt, xi};
             t1.y = {y2, -0.5_rt, yi};
@@ -248,7 +266,7 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
             p4 = true;
         }
 
-       if (x1 ==  -0.5_rt && y4 == -0.5_rt && !p1 && !p4) {
+        if (x1 ==  -0.5_rt && y4 == -0.5_rt && !p1 && !p4) {
             EBTriangle t1;
             t1.x = {x1, -0.5_rt, xi};
             t1.y = {y1, -0.5_rt, yi};
@@ -263,6 +281,60 @@ void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
             triangles[nt++] = t2;
 
             p1 = true;
+            p4 = true;
+        }
+
+        if (x1 ==  -0.5_rt && y4 == 0.5_rt && !p1 && !p4) {
+            EBTriangle t1;
+            t1.x = {x1, -0.5_rt, xi};
+            t1.y = {y1,  0.5_rt, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x4, -0.5_rt, xi};
+            t2.y = {y4,  0.5_rt, yi};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            p1 = true;
+            p4 = true;
+        }
+
+        if (y2 == 0.5_rt && x4 == 0.5_rt && !p2 && !p4) {
+            EBTriangle t1;
+            t1.x = {x2, 0.5_rt, xi};
+            t1.y = {y2, 0.5_rt, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x4, 0.5_rt, xi};
+            t2.y = {y4, 0.5_rt, yi};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            p2 = true;
+            p4 = true;
+        }
+
+        if (x2 ==  0.5_rt && y4 == 0.5_rt && !p2 && !p4) {
+            EBTriangle t1;
+            t1.x = {x2, 0.5_rt, xi};
+            t1.y = {y2, 0.5_rt, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBTriangle t2;
+            t2.x = {x4, 0.5_rt, xi};
+            t2.y = {y4, 0.5_rt, yi};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            p2 = true;
             p4 = true;
         }
     }

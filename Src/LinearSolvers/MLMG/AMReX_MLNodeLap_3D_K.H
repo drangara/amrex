@@ -6919,15 +6919,15 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                fac_eb*eb_vel(i,j,k-1,0)*(
                     mmintg_x(i,j,k-1,i_M_1)
             - 2._rt*mmintg_x(i,j,k-1,i_M_x)
-            - 2._rt*mmintg_x(i,j,k-1,i_M_y)
-            + 4._rt*mmintg_x(i,j,k-1,i_M_xy));
+            + 2._rt*mmintg_x(i,j,k-1,i_M_y)
+            - 4._rt*mmintg_x(i,j,k-1,i_M_xy));
 
         rhs(i,j,k) +=
                fac_eb*eb_vel(i,j-1,k-1,0)*(
                     mmintg_x(i,j-1,k-1,i_M_1)
-            - 2._rt*mmintg_x(i,j-1,k-1,i_M_x)
+            + 2._rt*mmintg_x(i,j-1,k-1,i_M_x)
             + 2._rt*mmintg_x(i,j-1,k-1,i_M_y)
-            - 4._rt*mmintg_x(i,j-1,k-1,i_M_xy));
+            + 4._rt*mmintg_x(i,j-1,k-1,i_M_xy));
     }
 }
 
