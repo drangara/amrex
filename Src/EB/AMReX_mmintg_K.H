@@ -111,6 +111,82 @@ void add_to_mmintg (int i, int j, int k,
 
 }
 
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void extract_triangle_on_face_hi (GpuArray<EBTriangle, 4>& triangles, int& nt,
+                                  GpuArray<Array <Real,2>, 4> const& ipts, int np,
+                                  bool sign) noexcept
+{
+    AMREX_ASSERT(np == 2);
+
+    Real x1 = ipts[0][0];
+    Real x2 = ipts[1][0];
+    Real y1 = ipts[0][1];
+    Real y2 = ipts[1][1];
+
+    EBTriangle t;
+    if (x1 == -0.5_rt && y2 == 0.5_rt) {
+        t.x = {x1, x2, -0.5_rt};
+        t.y = {y1, y2,  0.5_rt};
+    } else if (x1 == 0.5_rt && y2 == 0.5_rt) {
+        t.x = {x2, x1, 0.5_rt};
+        t.y = {y2, y1, 0.5_rt};
+    } else if (x1 == -0.5_rt && y2 == -0.5_rt) {
+        t.x = {x1, -0.5_rt, x2};
+        t.y = {y1, -0.5_rt, y2};
+    }else if (x1 == 0.5_rt && y2 == -0.5_rt) {
+        t.x = {x1, x2,  0.5_rt};
+        t.y = {y1, y2, -0.5_rt};
+    }
+
+    t.sign = sign;
+    triangles[nt++] = t;
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void extract_triangle_on_face_lo (GpuArray<EBTriangle, 4>& triangles, int& nt,
+                                  GpuArray<Array <Real,2>, 4> const& ipts, int np,
+                                  Real nx, Real ny) noexcept
+{
+    AMREX_ASSERT(np == 2);
+
+    Real x1 = ipts[0][0];
+    Real x2 = ipts[1][0];
+    Real y1 = ipts[0][1];
+    Real y2 = ipts[1][1];
+
+    bool sign = true;
+
+    EBTriangle t;
+    if (x1 == -0.5_rt && y2 == 0.5_rt) {
+        t.x = {x1, x2, -0.5_rt};
+        t.y = {y1, y2,  0.5_rt};
+        if (nx < 0._rt) {
+            sign = false;
+        }
+    } else if (x1 == 0.5_rt && y2 == 0.5_rt) {
+        t.x = {x2, x1, 0.5_rt};
+        t.y = {y2, y1, 0.5_rt};
+        if (nx > 0._rt) {
+            sign = false;
+        }
+    } else if (x1 == -0.5_rt && y2 == -0.5_rt) {
+        t.x = {x1, -0.5_rt, x2};
+        t.y = {y1, -0.5_rt, y2};
+        if (nx < 0._rt) {
+            sign = false;
+        }
+    }else if (x1 == 0.5_rt && y2 == -0.5_rt) {
+        t.x = {x1, x2,  0.5_rt};
+        t.y = {y1, y2, -0.5_rt};
+        if (nx > 0._rt) {
+            sign = false;
+        }
+    }
+
+    t.sign = sign;
+    triangles[nt++] = t;
+}
+
 //TODO: Improve this routine. Too many special cases!!
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void extract_triangles_on_face (GpuArray<EBTriangle, 4>& triangles, int& nt,
@@ -463,85 +539,94 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
     mmintg_x(i,j,k, i_M_y)  = 0._rt;
     mmintg_x(i,j,k, i_M_xy) = 0._rt;
 
-    if (flag(i-1,j,k).isRegular() || flag(i-1,j,k).isCovered()) {
-        return;
-    }
-
-    // lo side x =  0.5
-    // hi side x = -0.5
-    //
-    Real lo_Cx = bcent(i-1,j,k,0);
-    Real lo_Cy = bcent(i-1,j,k,1);
-    Real lo_Cz = bcent(i-1,j,k,2);
-    Real lo_nx = bnorm(i-1,j,k,0);
-    Real lo_ny = bnorm(i-1,j,k,1);
-    Real lo_nz = bnorm(i-1,j,k,2);
-
-    Real hi_Cx = bcent(i,j,k,0);
-    Real hi_Cy = bcent(i,j,k,1);
-    Real hi_Cz = bcent(i,j,k,2);
-    Real hi_nx = bnorm(i,j,k,0);
-    Real hi_ny = bnorm(i,j,k,1);
-    Real hi_nz = bnorm(i,j,k,2);
-
     GpuArray<Array<Real,2>, 4> lo_ipts;
     GpuArray<Array<Real,2>, 4> hi_ipts;
     int lo_np = 0;
     int hi_np = 0;
 
-    // y = -0.5
-    {
-        Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cy)*lo_ny)/lo_nz;
-        Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cy)*hi_ny)/hi_nz;
-
-        if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {-0.5_rt,lo_z};}
-        if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {-0.5_rt,hi_z};}
+    if (!(flag(i-1,j,k).isSingleValued() || flag(i,j,k).isSingleValued())) {
+        return;
     }
 
-    // y = 0.5
-    {
-        Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cy)*lo_ny)/lo_nz;
-        Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cy)*hi_ny)/hi_nz;
+    if (flag(i-1,j,k).isSingleValued()) {
+        // lo side x =  0.5
+        Real lo_Cx = bcent(i-1,j,k,0);
+        Real lo_Cy = bcent(i-1,j,k,1);
+        Real lo_Cz = bcent(i-1,j,k,2);
+        Real lo_nx = bnorm(i-1,j,k,0);
+        Real lo_ny = bnorm(i-1,j,k,1);
+        Real lo_nz = bnorm(i-1,j,k,2);
 
-        if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {0.5_rt,lo_z};}
-        if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {0.5_rt,hi_z};}
+        // y = -0.5
+        {
+            Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cy)*lo_ny)/lo_nz;
+            if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {-0.5_rt,lo_z};}
+        }
+
+        // y = 0.5
+        {
+            Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cy)*lo_ny)/lo_nz;
+            if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {0.5_rt,lo_z};}
+        }
+
+        // z = -0.5
+        {
+            Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+            if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,-0.5_rt};}
+        }
+
+        // z = 0.5
+        {
+            Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+            if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,0.5_rt};}
+        }
     }
 
-    // z = -0.5
-    {
-        Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cz)*lo_nz)/lo_ny;
-        Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+    if (flag(i,j,k).isSingleValued()) {
+        // hi side x = -0.5
+        Real hi_Cx = bcent(i,j,k,0);
+        Real hi_Cy = bcent(i,j,k,1);
+        Real hi_Cz = bcent(i,j,k,2);
+        Real hi_nx = bnorm(i,j,k,0);
+        Real hi_ny = bnorm(i,j,k,1);
+        Real hi_nz = bnorm(i,j,k,2);
 
-        if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,-0.5_rt};}
-        if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,-0.5_rt};}
-    }
 
-    // z = 0.5
-    {
-        Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cz)*lo_nz)/lo_ny;
-        Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+        // y = -0.5
+        {
+            Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cy)*hi_ny)/hi_nz;
+            if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {-0.5_rt,hi_z};}
+        }
 
-        if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,0.5_rt};}
-        if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,0.5_rt};}
+        // y = 0.5
+        {
+            Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cy)*hi_ny)/hi_nz;
+            if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {0.5_rt,hi_z};}
+        }
+
+        // z = -0.5
+        {
+            Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+            if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,-0.5_rt};}
+        }
+
+        // z = 0.5
+        {
+            Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+            if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,0.5_rt};}
+        }
     }
 
     GpuArray<EBTriangle, 4> triangles;
     int nt = 0;
 
-    if (lo_np == 2 && hi_np == 2) {
+    if (lo_np == 0 && hi_np == 2) {
+        extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, flag(i-1,j,k).isRegular());
+    } else if (lo_np == 2 && hi_np ==0) {
+        extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i-1,j,k,1), bnorm(i-1,j,k,2));
+    } else if (lo_np == 2 && hi_np == 2) {
         extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
-                                  lo_ny, lo_nz);
-    }
-
-    if (i==17 && j==8 && k==7) {
-        Print() << lo_np << std::endl;
-        Print() << hi_np << std::endl;
-        Print() << lo_ipts[0][0] << "," << lo_ipts[0][1] << std::endl;
-        Print() << lo_ipts[1][0] << "," << lo_ipts[1][1] << std::endl;
-        Print() << hi_ipts[0][0] << "," << hi_ipts[0][1] << std::endl;
-        Print() << hi_ipts[1][0] << "," << hi_ipts[1][1] << std::endl;
-        Print() << nt << std::endl;
-        Print() << "\n\n";
+                                  bnorm(i-1,j,k,1), bnorm(i-1,j,k,2));
     }
 
     for (int n = 0; n < nt; ++n) {

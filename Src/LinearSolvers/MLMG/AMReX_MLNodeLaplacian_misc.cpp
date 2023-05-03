@@ -1058,25 +1058,14 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
                         Array4<Real const> const& bnormarr = bnorm->const_array(mfi);
                         Array4<Real const> const& eb_vel = m_eb_vel[ilev]->const_array(mfi);
                         Array4<Real const> const& mmintgxarr = mmintgx->const_array(mfi);
+                        Array4<EBCellFlag const> const& flagarr = flag.const_array();
 
                         AMREX_HOST_DEVICE_FOR_3D(bx, i, j, k,
                         {
                             add_eb_flow_contrib_from_mismatched_faces(i,j,k,rhsarr,dmskarr,
-                                dxinvarr,mmintgxarr,eb_vel);
+                                dxinvarr,mmintgxarr,eb_vel,flagarr);
 
-                            if (i==19 && j==10 && k==5) {
-                                Print() << "rhs" << IntVect(i,j,k) << "=" << rhsarr(i,j,k) << std::endl;
-                            }
-
-                            if (i==20 && j==10 && k==5) {
-                                Print() << "rhs" << IntVect(i,j,k) << "=" << rhsarr(i,j,k) << std::endl;
-                            }
-
-                            if (std::abs(rhsarr(i,j,k)) > 1.e-10) {
-                                Print() << "ijk=" << IntVect(i,j,k) << ", rhs=" << rhsarr(i,j,k) << std::endl;
-                            }
                         });
-                        Abort();
 #endif
                     }
                 }
