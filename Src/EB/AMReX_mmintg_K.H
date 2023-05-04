@@ -558,25 +558,25 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
         Real lo_nz = bnorm(i-1,j,k,2);
 
         // y = -0.5
-        {
+        if (lo_nz != 0._rt) {
             Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cy)*lo_ny)/lo_nz;
             if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {-0.5_rt,lo_z};}
         }
 
         // y = 0.5
-        {
+        if (lo_nz != 0._rt) {
             Real lo_z = lo_Cz -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cy)*lo_ny)/lo_nz;
             if (lo_z <= 0.5_rt && lo_z >= -0.5_rt) {lo_ipts[lo_np++] = {0.5_rt,lo_z};}
         }
 
         // z = -0.5
-        {
+        if (lo_ny != 0._rt) {
             Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (-0.5_rt-lo_Cz)*lo_nz)/lo_ny;
             if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,-0.5_rt};}
         }
 
         // z = 0.5
-        {
+        if (lo_ny != 0._rt) {
             Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cz)*lo_nz)/lo_ny;
             if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {lo_y,0.5_rt};}
         }
@@ -593,25 +593,25 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
 
 
         // y = -0.5
-        {
+        if (hi_nz != 0_rt) {
             Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cy)*hi_ny)/hi_nz;
             if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {-0.5_rt,hi_z};}
         }
 
         // y = 0.5
-        {
+        if (hi_nz != 0._rt) {
             Real hi_z = hi_Cz -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cy)*hi_ny)/hi_nz;
             if (hi_z <= 0.5_rt && hi_z >= -0.5_rt) {hi_ipts[hi_np++] = {0.5_rt,hi_z};}
         }
 
         // z = -0.5
-        {
+        if (hi_ny != 0._rt) {
             Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
             if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,-0.5_rt};}
         }
 
         // z = 0.5
-        {
+        if (hi_ny != 0._rt) {
             Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (0.5_rt-hi_Cz)*hi_nz)/hi_ny;
             if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {hi_y,0.5_rt};}
         }
