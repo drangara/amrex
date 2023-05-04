@@ -6894,7 +6894,7 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real> const& rhs,
                       Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
                       Array4<Real const> const& mmintg_x,
-                      Array4<Real const> const& eb_vel,
+                      Array4<Real const> const& mm_ebvel,
                       Array4<EBCellFlag const> const& flag) noexcept
 {
     if (!msk(i,j,k))
@@ -6902,73 +6902,33 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
 
         Real fac_eb = 0.25*dxinv[0];
 
-        {
-            Real ebvel = 0._rt;
-            if (flag(i,j,k).isSingleValued()) {
-                ebvel = eb_vel(i,j,k,0);
-            } else {
-                ebvel = eb_vel(i-1,j,k,0);
-            }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j,k,0)*(
+                    mmintg_x(i,j,k,i_M_1)
+            - 2._rt*mmintg_x(i,j,k,i_M_x)
+            - 2._rt*mmintg_x(i,j,k,i_M_y)
+            + 4._rt*mmintg_x(i,j,k,i_M_xy));
 
-            rhs(i,j,k) +=
-                   fac_eb*ebvel*(
-                        mmintg_x(i,j,k,i_M_1)
-                - 2._rt*mmintg_x(i,j,k,i_M_x)
-                - 2._rt*mmintg_x(i,j,k,i_M_y)
-                + 4._rt*mmintg_x(i,j,k,i_M_xy));
-        }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j-1,k,0)*(
+                    mmintg_x(i,j-1,k,i_M_1)
+            + 2._rt*mmintg_x(i,j-1,k,i_M_x)
+            - 2._rt*mmintg_x(i,j-1,k,i_M_y)
+            - 4._rt*mmintg_x(i,j-1,k,i_M_xy));
 
-        {
-            Real ebvel = 0._rt;
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j,k-1)*(
+                    mmintg_x(i,j,k-1,i_M_1)
+            - 2._rt*mmintg_x(i,j,k-1,i_M_x)
+            + 2._rt*mmintg_x(i,j,k-1,i_M_y)
+            - 4._rt*mmintg_x(i,j,k-1,i_M_xy));
 
-            if (flag(i,j-1,k).isSingleValued()) {
-                ebvel = eb_vel(i,j-1,k,0);
-            } else {
-                ebvel = eb_vel(i-1,j-1,k,0);
-            }
-
-            rhs(i,j,k) +=
-                   fac_eb*ebvel*(
-                        mmintg_x(i,j-1,k,i_M_1)
-                + 2._rt*mmintg_x(i,j-1,k,i_M_x)
-                - 2._rt*mmintg_x(i,j-1,k,i_M_y)
-                - 4._rt*mmintg_x(i,j-1,k,i_M_xy));
-        }
-
-        {
-            Real ebvel = 0._rt;
-
-            if (flag(i,j,k-1).isSingleValued()) {
-                ebvel = eb_vel(i,j,k-1,0);
-            } else {
-                ebvel = eb_vel(i-1,j,k-1,0);
-            }
-
-            rhs(i,j,k) +=
-                   fac_eb*ebvel*(
-                        mmintg_x(i,j,k-1,i_M_1)
-                - 2._rt*mmintg_x(i,j,k-1,i_M_x)
-                + 2._rt*mmintg_x(i,j,k-1,i_M_y)
-                - 4._rt*mmintg_x(i,j,k-1,i_M_xy));
-        }
-
-        {
-
-            Real ebvel = 0._rt;
-
-            if (flag(i,j-1,k-1).isSingleValued()) {
-                ebvel = eb_vel(i,j-1,k-1,0);
-            } else {
-                ebvel = eb_vel(i-1,j-1,k-1,0);
-            }
-
-            rhs(i,j,k) +=
-                   fac_eb*ebvel*(
-                        mmintg_x(i,j-1,k-1,i_M_1)
-                + 2._rt*mmintg_x(i,j-1,k-1,i_M_x)
-                + 2._rt*mmintg_x(i,j-1,k-1,i_M_y)
-                + 4._rt*mmintg_x(i,j-1,k-1,i_M_xy));
-            }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j-1,k-1)*(
+                    mmintg_x(i,j-1,k-1,i_M_1)
+            + 2._rt*mmintg_x(i,j-1,k-1,i_M_x)
+            + 2._rt*mmintg_x(i,j-1,k-1,i_M_y)
+            + 4._rt*mmintg_x(i,j-1,k-1,i_M_xy));
     }
 }
 

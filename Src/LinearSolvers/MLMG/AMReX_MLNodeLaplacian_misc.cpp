@@ -1056,14 +1056,14 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
 #if (AMREX_SPACEDIM == 3)
                         Array4<Real const> const& bcentarr = bcent->const_array(mfi);
                         Array4<Real const> const& bnormarr = bnorm->const_array(mfi);
-                        Array4<Real const> const& eb_vel = m_eb_vel[ilev]->const_array(mfi);
+                        Array4<Real const> const& mm_ebvel = m_mm_ebvel[ilev]->const_array(mfi);
                         Array4<Real const> const& mmintgxarr = mmintgx->const_array(mfi);
                         Array4<EBCellFlag const> const& flagarr = flag.const_array();
 
                         AMREX_HOST_DEVICE_FOR_3D(bx, i, j, k,
                         {
                             add_eb_flow_contrib_from_mismatched_faces(i,j,k,rhsarr,dmskarr,
-                                dxinvarr,mmintgxarr,eb_vel,flagarr);
+                                dxinvarr,mmintgxarr,mm_ebvel,flagarr);
 
                         });
 #endif

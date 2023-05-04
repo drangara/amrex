@@ -88,7 +88,7 @@ MLNodeLaplacian::define (const Vector<Geometry>& a_geom,
     m_surface_integral.resize(m_num_amr_levels);
     m_mmintegral.resize(m_num_amr_levels);
     m_eb_vel_dot_n.resize(m_num_amr_levels);
-    m_eb_vel.resize(m_num_amr_levels);
+    m_mm_ebvel.resize(m_num_amr_levels);
     for (int amrlev = 0; amrlev < m_num_amr_levels; ++amrlev)
     {
         m_integral[amrlev] = std::make_unique<MultiFab>(m_grids[amrlev][0],
@@ -1031,12 +1031,12 @@ MLNodeLaplacian::setEBInflowVelocity (int amrlev, const MultiFab& eb_vel)
 
     m_eb_vel_dot_n[amrlev]->setVal(0.0);
 
-    if (m_eb_vel[amrlev] == nullptr) {
-        m_eb_vel[amrlev] = std::make_unique<MultiFab>(
+    if (m_mm_ebvel[amrlev] == nullptr) {
+        m_mm_ebvel[amrlev] = std::make_unique<MultiFab>(
                 m_grids[amrlev][mglev], m_dmap[amrlev][mglev],
                 AMREX_SPACEDIM, 1, MFInfo(), *m_factory[amrlev][mglev]);
     }
-    m_eb_vel[amrlev]->setVal(0.0);
+    m_mm_ebvel[amrlev]->setVal(0.0);
 
     const auto *ebfactory = dynamic_cast<EBFArrayBoxFactory const*>(m_factory[amrlev][mglev].get());
 
@@ -1053,23 +1053,34 @@ MLNodeLaplacian::setEBInflowVelocity (int amrlev, const MultiFab& eb_vel)
         if (flagfab.getType(bx) == FabType::singlevalued) {
             Array4<Real> const& eb_vel_dot_n = m_eb_vel_dot_n[amrlev]->array(mfi);
             Array4<Real const> const& ebvelin = eb_vel.const_array(mfi);
-            Array4<Real      > const& eb_vel = m_eb_vel[amrlev]->array(mfi);
+            Array4<Real      > const& mm_ebvel = m_mm_ebvel[amrlev]->array(mfi);
             Array4<Real const> const& bnorm = ebfactory->getBndryNormal().const_array(mfi);
+            Array4<EBCellFlag const> const& flag = flagfab.const_array();
 
-            ParallelFor(bx, [eb_vel_dot_n,ebvelin,eb_vel,bnorm]
+            ParallelFor(bx, [eb_vel_dot_n,ebvelin,mm_ebvel,bnorm,flag]
              AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 for(int n = 0; n < AMREX_SPACEDIM; ++n)
                 {
-                    eb_vel(i,j,k,n)      = ebvelin(i,j,k,n);
                     eb_vel_dot_n(i,j,k) += ebvelin(i,j,k,n)*bnorm(i,j,k,n);
+
+                    mm_ebvel(i,j,k,n)   = ebvelin(i,j,k,n);
+                    if (!flag(i,j,k).isSingleValued()) {
+                        if (n == 0) {
+                            mm_ebvel(i,j,k,n) = ebvelin(i-1,j,k,n);
+                        } else if (n == 1) {
+                            mm_ebvel(i,j,k,n) = ebvelin(i,j-1,k,n);
+                        } else if (n == 2) {
+                            mm_ebvel(i,j,k,n) = ebvelin(i,j,k-1,n);
+                        }
+                    }
                 }
             });
         }
     }
 
     m_eb_vel_dot_n[amrlev]->FillBoundary(m_geom[amrlev][mglev].periodicity());
-    m_eb_vel[amrlev]->FillBoundary(m_geom[amrlev][mglev].periodicity());
+    m_mm_ebvel[amrlev]->FillBoundary(m_geom[amrlev][mglev].periodicity());
 
 #if (AMREX_SPACEDIM == 2)
     const int ncomp_si = 3;
