@@ -38,7 +38,7 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
 #endif
         for (MFIter mfi(*mmintgmf[idim],mfi_info); mfi.isValid(); ++mfi)
         {
-            const Box& bx = mfi.growntilebox(nghost);
+            const Box& bx = mfi.growntilebox(nghost[idim]);
             Array4<Real> const& mmintg = mmintgmf[idim]->array(mfi);
 
             const auto& flagfab = flags[mfi];
@@ -46,6 +46,7 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
 
             if (typ == FabType::covered || typ == FabType::regular)
             {
+                auto const& fg = flagfab.array();
                 AMREX_HOST_DEVICE_FOR_4D ( bx, numMmIntgs, i, j, k, n,
                 {
                    mmintg(i,j,k,n) = 0.0;
@@ -64,9 +65,10 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
                     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                     {
                         const auto ebflag = fg(i,j,k);
-                        if (ebflag.isRegular() || ebflag.isCovered()) {
-                            for (int n = 0; n < numMmIntgs; ++n) mmintg(i,j,k,n) = 0.0;
-                        } else {
+                        if(idim == 0) {
+                            compute_mmintg_on_yz_face(i,j,k,mmintg,bc,bn,fg);
+                        } else if (idim == 1) {
+                            compute_mmintg_on_xz_face(i,j,k,mmintg,bc,bn,fg);
                         }
                     });
                 }

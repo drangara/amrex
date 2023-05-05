@@ -1096,8 +1096,7 @@ MLNodeLaplacian::setEBInflowVelocity (int amrlev, const MultiFab& eb_vel)
 #if (AMREX_SPACEDIM == 3)
 
     for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
-        m_mmintegral[amrlev][idim] = std::make_unique<MultiFab>(convert(m_grids[amrlev][0],
-                                                                        IntVect::TheDimensionVector(idim)),
+        m_mmintegral[amrlev][idim] = std::make_unique<MultiFab>(m_grids[amrlev][0],
                                                         m_dmap[amrlev][0],
                                                         ncomp_mmi, 1, MFInfo(),
                                                         *m_factory[amrlev][0]);
