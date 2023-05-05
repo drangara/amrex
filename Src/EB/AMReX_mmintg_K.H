@@ -13,6 +13,36 @@ struct EBTriangle {
 };
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void sanitize_ipts(GpuArray<Array <Real,2>, 4>& ipts, int& np) noexcept {
+    Real eps = 100*std::numeric_limits<Real>::epsilon();
+
+    for (int n = 0; n < np; ++n) {
+        for (int c = 0; c < 2; ++c) {
+            if (std::abs(ipts[n][c] - (-0.5_rt)) <= eps) {
+                ipts[n][c] = -0.5_rt;
+            } else if (std::abs(ipts[n][c] - 0.5_rt) <= eps) {
+                ipts[n][c] = 0.5_rt;
+            }
+        }
+    }
+
+    // Remove duplicates
+    if (np == 3) {
+        if (   std::abs(ipts[0][0] - ipts[1][0]) <= eps
+            && std::abs(ipts[0][1] - ipts[1][1]) <= eps) {
+            ipts[1] = {ipts[2][0], ipts[2][1]};
+            --np;
+        } else if (   std::abs(ipts[1][0] - ipts[2][0]) <= eps
+                   && std::abs(ipts[1][1] - ipts[2][1]) <= eps) {
+            --np;
+        } else if (   std::abs(ipts[0][0] - ipts[2][0]) <= eps
+                   && std::abs(ipts[0][1] - ipts[2][1]) <= eps) {
+            --np;
+        }
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void order_triangle (EBTriangle& t, Real nx, Real ny) noexcept
 {
     bool rev_order = false;
@@ -617,6 +647,9 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
         }
     }
 
+    sanitize_ipts(lo_ipts, lo_np);
+    sanitize_ipts(hi_ipts, hi_np);
+
     GpuArray<EBTriangle, 4> triangles;
     int nt = 0;
 
@@ -724,6 +757,9 @@ void compute_mmintg_on_xz_face(int i, int j, int k,
         }
     }
 
+    sanitize_ipts(lo_ipts, lo_np);
+    sanitize_ipts(hi_ipts, hi_np);
+
     GpuArray<EBTriangle, 4> triangles;
     int nt = 0;
 
@@ -830,6 +866,9 @@ void compute_mmintg_on_xy_face(int i, int j, int k,
             if (hi_x <= 0.5_rt && hi_x >= -0.5_rt) {hi_ipts[hi_np++] = {hi_x,0.5_rt};}
         }
     }
+
+    sanitize_ipts(lo_ipts, lo_np);
+    sanitize_ipts(hi_ipts, hi_np);
 
     GpuArray<EBTriangle, 4> triangles;
     int nt = 0;
