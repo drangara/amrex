@@ -38,7 +38,7 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
 #endif
         for (MFIter mfi(*mmintgmf[idim],mfi_info); mfi.isValid(); ++mfi)
         {
-            const Box& bx = mfi.growntilebox(nghost[idim]);
+            const Box& bx = mfi.growntilebox(nghost);
             Array4<Real> const& mmintg = mmintgmf[idim]->array(mfi);
 
             const auto& flagfab = flags[mfi];
