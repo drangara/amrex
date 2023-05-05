@@ -46,7 +46,6 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
 
             if (typ == FabType::covered || typ == FabType::regular)
             {
-                auto const& fg = flagfab.array();
                 AMREX_HOST_DEVICE_FOR_4D ( bx, numMmIntgs, i, j, k, n,
                 {
                    mmintg(i,j,k,n) = 0.0;
@@ -69,6 +68,8 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
                             compute_mmintg_on_yz_face(i,j,k,mmintg,bc,bn,fg);
                         } else if (idim == 1) {
                             compute_mmintg_on_xz_face(i,j,k,mmintg,bc,bn,fg);
+                        } else if (idim == 2) {
+                            compute_mmintg_on_xy_face(i,j,k,mmintg,bc,bn,fg);
                         }
                     });
                 }
@@ -88,7 +89,6 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
                         } else if (idim == 2) {
                             compute_mmintg_on_xy_face(i,j,k,mmintg,bc,bn,fg);
                         }
-
                     }
                 }
             }

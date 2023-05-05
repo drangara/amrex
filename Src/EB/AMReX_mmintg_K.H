@@ -758,7 +758,7 @@ void compute_mmintg_on_xy_face(int i, int j, int k,
     int lo_np = 0;
     int hi_np = 0;
 
-    if (!(flag(i,j,k-1).isSingleValued() || flag(i,j,k-1).isSingleValued())) {
+    if (!(flag(i,j,k-1).isSingleValued() || flag(i,j,k).isSingleValued())) {
         return;
     }
 
@@ -826,7 +826,7 @@ void compute_mmintg_on_xy_face(int i, int j, int k,
 
         // y = 0.5
         if (hi_nx != 0._rt) {
-            Real hi_x = hi_Cx -((-0.5_rt-hi_Cy)*hi_ny + (-0.5_rt-hi_Cz)*hi_nz)/hi_nx;
+            Real hi_x = hi_Cx -(( 0.5_rt-hi_Cy)*hi_ny + (-0.5_rt-hi_Cz)*hi_nz)/hi_nx;
             if (hi_x <= 0.5_rt && hi_x >= -0.5_rt) {hi_ipts[hi_np++] = {hi_x,0.5_rt};}
         }
     }
