@@ -730,7 +730,7 @@ void compute_mmintg_on_xz_face(int i, int j, int k,
     if (lo_np == 0 && hi_np == 2) {
         extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, flag(i,j-1,k).isRegular());
     } else if (lo_np == 2 && hi_np ==0) {
-        extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i,j-1,k,0), bnorm(i-1,j,k,2));
+        extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i,j-1,k,0), bnorm(i,j-1,k,2));
     } else if (lo_np == 2 && hi_np == 2) {
         extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
                                   bnorm(i,j-1,k,0), bnorm(i,j-1,k,2));
@@ -738,6 +738,113 @@ void compute_mmintg_on_xz_face(int i, int j, int k,
 
     for (int n = 0; n < nt; ++n) {
         add_to_mmintg(i,j,k,mmintg_y,triangles[n]);
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void compute_mmintg_on_xy_face(int i, int j, int k,
+                               Array4<Real> const& mmintg_z,
+                               Array4<Real const> const& bcent,
+                               Array4<Real const> const& bnorm,
+                               Array4<EBCellFlag const> const& flag) noexcept
+{
+    mmintg_z(i,j,k, i_M_1)  = 0._rt;
+    mmintg_z(i,j,k, i_M_x)  = 0._rt;
+    mmintg_z(i,j,k, i_M_y)  = 0._rt;
+    mmintg_z(i,j,k, i_M_xy) = 0._rt;
+
+    GpuArray<Array<Real,2>, 4> lo_ipts;
+    GpuArray<Array<Real,2>, 4> hi_ipts;
+    int lo_np = 0;
+    int hi_np = 0;
+
+    if (!(flag(i,j,k-1).isSingleValued() || flag(i,j,k-1).isSingleValued())) {
+        return;
+    }
+
+    if (flag(i,j,k-1).isSingleValued()) {
+        // lo side z =  0.5
+        Real lo_Cx = bcent(i,j,k-1,0);
+        Real lo_Cy = bcent(i,j,k-1,1);
+        Real lo_Cz = bcent(i,j,k-1,2);
+        Real lo_nx = bnorm(i,j,k-1,0);
+        Real lo_ny = bnorm(i,j,k-1,1);
+        Real lo_nz = bnorm(i,j,k-1,2);
+
+        // x = -0.5
+        if (lo_ny != 0._rt) {
+            Real lo_y = lo_Cy -((-0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+            if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {-0.5_rt,lo_y};}
+        }
+
+        // x = 0.5
+        if (lo_ny != 0._rt) {
+            Real lo_y = lo_Cy -(( 0.5_rt-lo_Cx)*lo_nx + (0.5_rt-lo_Cz)*lo_nz)/lo_ny;
+            if (lo_y <= 0.5_rt && lo_y >= -0.5_rt) {lo_ipts[lo_np++] = {0.5_rt,lo_y};}
+        }
+
+        // y = -0.5
+        if (lo_nx != 0._rt) {
+            Real lo_x = lo_Cx -((-0.5_rt-lo_Cy)*lo_ny + (0.5_rt-lo_Cz)*lo_nz)/lo_nx;
+            if (lo_x <= 0.5_rt && lo_x >= -0.5_rt) {lo_ipts[lo_np++] = {lo_x,-0.5_rt};}
+        }
+
+        // y = 0.5
+        if (lo_nx != 0._rt) {
+            Real lo_x = lo_Cx -(( 0.5_rt-lo_Cy)*lo_ny + (0.5_rt-lo_Cz)*lo_nz)/lo_nx;
+            if (lo_x <= 0.5_rt && lo_x >= -0.5_rt) {lo_ipts[lo_np++] = {lo_x,0.5_rt};}
+        }
+    }
+
+    if (flag(i,j,k).isSingleValued()) {
+        // hi side z = -0.5
+        Real hi_Cx = bcent(i,j,k,0);
+        Real hi_Cy = bcent(i,j,k,1);
+        Real hi_Cz = bcent(i,j,k,2);
+        Real hi_nx = bnorm(i,j,k,0);
+        Real hi_ny = bnorm(i,j,k,1);
+        Real hi_nz = bnorm(i,j,k,2);
+
+
+        // x = -0.5
+        if (hi_ny != 0_rt) {
+            Real hi_y = hi_Cy -((-0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+            if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {-0.5_rt,hi_y};}
+        }
+
+        // x = 0.5
+        if (hi_ny != 0._rt) {
+            Real hi_y = hi_Cy -(( 0.5_rt-hi_Cx)*hi_nx + (-0.5_rt-hi_Cz)*hi_nz)/hi_ny;
+            if (hi_y <= 0.5_rt && hi_y >= -0.5_rt) {hi_ipts[hi_np++] = {0.5_rt,hi_y};}
+        }
+
+        // y = -0.5
+        if (hi_nx != 0._rt) {
+            Real hi_x = hi_Cx -((-0.5_rt-hi_Cy)*hi_ny + (-0.5_rt-hi_Cz)*hi_nz)/hi_nx;
+            if (hi_x <= 0.5_rt && hi_x >= -0.5_rt) {hi_ipts[hi_np++] = {hi_x,-0.5_rt};}
+        }
+
+        // y = 0.5
+        if (hi_nx != 0._rt) {
+            Real hi_x = hi_Cx -((-0.5_rt-hi_Cy)*hi_ny + (-0.5_rt-hi_Cz)*hi_nz)/hi_nx;
+            if (hi_x <= 0.5_rt && hi_x >= -0.5_rt) {hi_ipts[hi_np++] = {hi_x,0.5_rt};}
+        }
+    }
+
+    GpuArray<EBTriangle, 4> triangles;
+    int nt = 0;
+
+    if (lo_np == 0 && hi_np == 2) {
+        extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, flag(i,j,k-1).isRegular());
+    } else if (lo_np == 2 && hi_np ==0) {
+        extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i,j,k-1,0), bnorm(i,j,k-1,1));
+    } else if (lo_np == 2 && hi_np == 2) {
+        extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
+                                  bnorm(i,j,k-1,0), bnorm(i,j,k-1,1));
+    }
+
+    for (int n = 0; n < nt; ++n) {
+        add_to_mmintg(i,j,k,mmintg_z,triangles[n]);
     }
 }
 

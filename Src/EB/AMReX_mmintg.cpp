@@ -85,6 +85,8 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
                             compute_mmintg_on_yz_face(i,j,k,mmintg,bc,bn,fg);
                         } else if (idim == 1) {
                             compute_mmintg_on_xz_face(i,j,k,mmintg,bc,bn,fg);
+                        } else if (idim == 2) {
+                            compute_mmintg_on_xy_face(i,j,k,mmintg,bc,bn,fg);
                         }
 
                     }

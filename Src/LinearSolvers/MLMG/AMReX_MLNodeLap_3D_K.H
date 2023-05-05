@@ -6895,6 +6895,7 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                       Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
                       Array4<Real const> const& mmintg_x,
                       Array4<Real const> const& mmintg_y,
+                      Array4<Real const> const& mmintg_z,
                       Array4<Real const> const& mm_ebvel,
                       Array4<EBCellFlag const> const& flag) noexcept
 {
@@ -6961,6 +6962,35 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
             + 2._rt*mmintg_y(i-1,j,k-1,i_M_x)
             + 2._rt*mmintg_y(i-1,j,k-1,i_M_y)
             + 4._rt*mmintg_y(i-1,j,k-1,i_M_xy));
+
+        // z faces
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j,k,2)*(
+                    mmintg_z(i,j,k,i_M_1)
+            - 2._rt*mmintg_z(i,j,k,i_M_x)
+            - 2._rt*mmintg_z(i,j,k,i_M_y)
+            + 4._rt*mmintg_z(i,j,k,i_M_xy));
+
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i-1,j,k,2)*(
+                    mmintg_z(i-1,j,k,i_M_1)
+            + 2._rt*mmintg_z(i-1,j,k,i_M_x)
+            - 2._rt*mmintg_z(i-1,j,k,i_M_y)
+            - 4._rt*mmintg_z(i-1,j,k,i_M_xy));
+
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j-1,k,2)*(
+                    mmintg_z(i,j-1,k,i_M_1)
+            - 2._rt*mmintg_z(i,j-1,k,i_M_x)
+            + 2._rt*mmintg_z(i,j-1,k,i_M_y)
+            - 4._rt*mmintg_z(i,j-1,k,i_M_xy));
+
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i-1,j-1,k,2)*(
+                    mmintg_z(i-1,j-1,k,i_M_1)
+            + 2._rt*mmintg_z(i-1,j-1,k,i_M_x)
+            + 2._rt*mmintg_z(i-1,j-1,k,i_M_y)
+            + 4._rt*mmintg_z(i-1,j-1,k,i_M_xy));
     }
 }
 
