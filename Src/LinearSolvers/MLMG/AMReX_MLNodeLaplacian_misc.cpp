@@ -1050,8 +1050,14 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
 
                         AMREX_HOST_DEVICE_FOR_3D(bx, i, j, k,
                         {
+
+#if (AMREX_SPACEDIM == 2)
+                            add_eb_flow_contribution(i,j,k,rhsarr,dmskarr,
+                                dxinvarr,bareaarr,sintgarr,eb_vel_dot_n);
+#else
                             add_eb_flow_contribution(i,j,k,rhsarr,dmskarr,
                                 dxinvarr,sintgarr,eb_vel_dot_n);
+#endif
 
                         });
 
