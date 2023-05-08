@@ -385,7 +385,7 @@ struct SoAParticle : SoAParticleBase
     //functions to get positions of the particle in the SOA data
 
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    RealVect pos () const & {return RealVect(AMREX_D_DECL(this->m_particle_tile_data->m_rdata[0][m_index], this->m_particle_tile_data.m_rdata[1][m_index], this->m_particle_tile_data->m_rdata[2][m_index]));}
+    RealVect pos () const & {return RealVect(AMREX_D_DECL(this->m_particle_tile_data.m_rdata[0][m_index], this->m_particle_tile_data.m_rdata[1][m_index], this->m_particle_tile_data.m_rdata[2][m_index]));}
 
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     RealType& pos (int position_index) &
@@ -746,7 +746,11 @@ struct ParticleTile
     SoA&       GetStructOfArrays ()       { return m_soa_tile; }
     const SoA& GetStructOfArrays () const { return m_soa_tile; }
 
+    template <typename T = ParticleType, typename std::enable_if<!T::is_soa_particle, int>::type = 0>
     bool empty () const { return m_aos_tile.empty(); }
+
+    template <typename T = ParticleType, typename std::enable_if<T::is_soa_particle, int>::type = 0>
+    bool empty () const { return m_soa_tile.empty(); }
 
     /**
     * \brief Returns the total number of particles (real and neighbor)
