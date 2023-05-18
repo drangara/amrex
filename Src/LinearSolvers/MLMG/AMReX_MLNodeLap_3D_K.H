@@ -6710,101 +6710,101 @@ void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real 
             && k == domhi.z) zero_khi = Real(0.0);
 
         rhs(i,j,k) = facx*(
-            vel(i-1,j-1,k  ,0)*(        -intg(i-1,j-1,k  ,i_S_1)
+            vel(i-1,j-1,k  ,0)*(    -vfrac(i-1,j-1,k  )
                                -Real(2.)*intg(i-1,j-1,k  ,i_S_y)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_z)
                                +Real(4.)*intg(i-1,j-1,k  ,i_S_y_z))*zero_jlo*zero_khi
-           +vel(i  ,j-1,k  ,0)*(         intg(i  ,j-1,k  ,i_S_1)
+           +vel(i  ,j-1,k  ,0)*(     vfrac(i  ,j-1,k  )
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_y)
                                -Real(2.)*intg(i  ,j-1,k  ,i_S_z)
                                -Real(4.)*intg(i  ,j-1,k  ,i_S_y_z))*zero_jlo*zero_khi
-           +vel(i-1,j  ,k  ,0)*(        -intg(i-1,j  ,k  ,i_S_1)
+           +vel(i-1,j  ,k  ,0)*(    -vfrac(i-1,j  ,k  )
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_y)
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_z)
                                -Real(4.)*intg(i-1,j  ,k  ,i_S_y_z))*zero_jhi*zero_khi
-           +vel(i  ,j  ,k  ,0)*(         intg(i  ,j  ,k  ,i_S_1)
+           +vel(i  ,j  ,k  ,0)*(     vfrac(i  ,j  ,k  )
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_y)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_z)
                                +Real(4.)*intg(i  ,j  ,k  ,i_S_y_z))*zero_jhi*zero_khi
-           +vel(i-1,j-1,k-1,0)*(        -intg(i-1,j-1,k-1,i_S_1)
+           +vel(i-1,j-1,k-1,0)*(    -vfrac(i-1,j-1,k-1)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_y)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_z)
                                -Real(4.)*intg(i-1,j-1,k-1,i_S_y_z))*zero_jlo*zero_klo
-           +vel(i  ,j-1,k-1,0)*(         intg(i  ,j-1,k-1,i_S_1)
+           +vel(i  ,j-1,k-1,0)*(     vfrac(i  ,j-1,k-1)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_y)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_z)
                                +Real(4.)*intg(i  ,j-1,k-1,i_S_y_z))*zero_jlo*zero_klo
-           +vel(i-1,j  ,k-1,0)*(        -intg(i-1,j  ,k-1,i_S_1)
+           +vel(i-1,j  ,k-1,0)*(    -vfrac(i-1,j  ,k-1)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_y)
                                -Real(2.)*intg(i-1,j  ,k-1,i_S_z)
                                +Real(4.)*intg(i-1,j  ,k-1,i_S_y_z))*zero_jhi*zero_klo
-           +vel(i  ,j  ,k-1,0)*(         intg(i  ,j  ,k-1,i_S_1)
+           +vel(i  ,j  ,k-1,0)*(     vfrac(i  ,j  ,k-1)
                                -Real(2.)*intg(i  ,j  ,k-1,i_S_y)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_z)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_y_z))*zero_jhi*zero_klo )
             + facy*(
-            vel(i-1,j-1,k  ,1)*(        -intg(i-1,j-1,k  ,i_S_1)
+            vel(i-1,j-1,k  ,1)*(    -vfrac(i-1,j-1,k  )
                                -Real(2.)*intg(i-1,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_z)
                                +Real(4.)*intg(i-1,j-1,k  ,i_S_x_z))*zero_ilo*zero_khi
-           +vel(i  ,j-1,k  ,1)*(        -intg(i  ,j-1,k  ,i_S_1)
+           +vel(i  ,j-1,k  ,1)*(    -vfrac(i  ,j-1,k  )
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_z)
                                -Real(4.)*intg(i  ,j-1,k  ,i_S_x_z))*zero_ihi*zero_khi
-           +vel(i-1,j  ,k  ,1)*(         intg(i-1,j  ,k  ,i_S_1)
+           +vel(i-1,j  ,k  ,1)*(     vfrac(i-1,j  ,k  )
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i-1,j  ,k  ,i_S_z)
                                -Real(4.)*intg(i-1,j  ,k  ,i_S_x_z))*zero_ilo*zero_khi
-           +vel(i  ,j  ,k  ,1)*(         intg(i  ,j  ,k  ,i_S_1)
+           +vel(i  ,j  ,k  ,1)*(     vfrac(i  ,j  ,k  )
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_z)
                                +Real(4.)*intg(i  ,j  ,k  ,i_S_x_z))*zero_ihi*zero_khi
-           +vel(i-1,j-1,k-1,1)*(        -intg(i-1,j-1,k-1,i_S_1)
+           +vel(i-1,j-1,k-1,1)*(    -vfrac(i-1,j-1,k-1)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_z)
                                -Real(4.)*intg(i-1,j-1,k-1,i_S_x_z))*zero_ilo*zero_klo
-           +vel(i  ,j-1,k-1,1)*(        -intg(i  ,j-1,k-1,i_S_1)
+           +vel(i  ,j-1,k-1,1)*(    -vfrac(i  ,j-1,k-1)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i  ,j-1,k-1,i_S_z)
                                +Real(4.)*intg(i  ,j-1,k-1,i_S_x_z))*zero_ihi*zero_klo
-           +vel(i-1,j  ,k-1,1)*(         intg(i-1,j  ,k-1,i_S_1)
+           +vel(i-1,j  ,k-1,1)*(     vfrac(i-1,j  ,k-1)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_z)
                                +Real(4.)*intg(i-1,j  ,k-1,i_S_x_z))*zero_ilo*zero_klo
-           +vel(i  ,j  ,k-1,1)*(         intg(i  ,j  ,k-1,i_S_1)
+           +vel(i  ,j  ,k-1,1)*(     vfrac(i  ,j  ,k-1)
                                -Real(2.)*intg(i  ,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_z)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_x_z))*zero_ihi*zero_klo )
             + facz*(
-            vel(i-1,j-1,k  ,2)*(         intg(i-1,j-1,k  ,i_S_1)
+            vel(i-1,j-1,k  ,2)*(     vfrac(i-1,j-1,k  )
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i-1,j-1,k  ,i_S_y)
                                +Real(4.)*intg(i-1,j-1,k  ,i_S_x_y))*zero_ilo*zero_jlo
-           +vel(i  ,j-1,k  ,2)*(         intg(i  ,j-1,k  ,i_S_1)
+           +vel(i  ,j-1,k  ,2)*(     vfrac(i  ,j-1,k  )
                                -Real(2.)*intg(i  ,j-1,k  ,i_S_x)
                                +Real(2.)*intg(i  ,j-1,k  ,i_S_y)
                                -Real(4.)*intg(i  ,j-1,k  ,i_S_x_y))*zero_ihi*zero_jlo
-           +vel(i-1,j  ,k  ,2)*(         intg(i-1,j  ,k  ,i_S_1)
+           +vel(i-1,j  ,k  ,2)*(     vfrac(i-1,j  ,k  )
                                +Real(2.)*intg(i-1,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i-1,j  ,k  ,i_S_y)
                                -Real(4.)*intg(i-1,j  ,k  ,i_S_x_y))*zero_ilo*zero_jhi
-           +vel(i  ,j  ,k  ,2)*(         intg(i  ,j  ,k  ,i_S_1)
+           +vel(i  ,j  ,k  ,2)*(     vfrac(i  ,j  ,k  )
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_x)
                                -Real(2.)*intg(i  ,j  ,k  ,i_S_y)
                                +Real(4.)*intg(i  ,j  ,k  ,i_S_x_y))*zero_ihi*zero_jhi
-           +vel(i-1,j-1,k-1,2)*(        -intg(i-1,j-1,k-1,i_S_1)
+           +vel(i-1,j-1,k-1,2)*(    -vfrac(i-1,j-1,k-1)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i-1,j-1,k-1,i_S_y)
                                -Real(4.)*intg(i-1,j-1,k-1,i_S_x_y))*zero_ilo*zero_jlo
-           +vel(i  ,j-1,k-1,2)*(        -intg(i  ,j-1,k-1,i_S_1)
+           +vel(i  ,j-1,k-1,2)*(    -vfrac(i  ,j-1,k-1)
                                +Real(2.)*intg(i  ,j-1,k-1,i_S_x)
                                -Real(2.)*intg(i  ,j-1,k-1,i_S_y)
                                +Real(4.)*intg(i  ,j-1,k-1,i_S_x_y))*zero_ihi*zero_jlo
-           +vel(i-1,j  ,k-1,2)*(        -intg(i-1,j  ,k-1,i_S_1)
+           +vel(i-1,j  ,k-1,2)*(    -vfrac(i-1,j  ,k-1)
                                -Real(2.)*intg(i-1,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i-1,j  ,k-1,i_S_y)
                                +Real(4.)*intg(i-1,j  ,k-1,i_S_x_y))*zero_ilo*zero_jhi
-           +vel(i  ,j  ,k-1,2)*(        -intg(i  ,j  ,k-1,i_S_1)
+           +vel(i  ,j  ,k-1,2)*(    -vfrac(i  ,j  ,k-1)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_x)
                                +Real(2.)*intg(i  ,j  ,k-1,i_S_y)
                                -Real(4.)*intg(i  ,j  ,k-1,i_S_x_y))*zero_ihi*zero_jhi );
@@ -6814,8 +6814,102 @@ void mlndlap_divu_eb (int i, int j, int k, Array4<Real> const& rhs, Array4<Real 
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void correct_mismatched_vfrac (int i, int j, int k, Array4<Real> const& rhs, Array4<Real const> const& vel,
+                               Array4<Real const> const& vfrac, Array4<Real const> const& intg,
+                               Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
+                               Box const& nodal_domain,
+                               GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
+                               GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
+{
+    Real facx = Real(0.25)*dxinv[0];
+    Real facy = Real(0.25)*dxinv[1];
+    Real facz = Real(0.25)*dxinv[2];
+
+    const auto domlo = amrex::lbound(nodal_domain);
+    const auto domhi = amrex::ubound(nodal_domain);
+
+    if (!msk(i,j,k)) {
+
+        Real zero_ilo = Real(1.0);
+        Real zero_ihi = Real(1.0);
+        Real zero_jlo = Real(1.0);
+        Real zero_jhi = Real(1.0);
+        Real zero_klo = Real(1.0);
+        Real zero_khi = Real(1.0);
+
+        // The nodal divergence operator should not see the tangential velocity
+        //     at an inflow face
+        if ((bclo[0] == LinOpBCType::Neumann || bclo[0] == LinOpBCType::inflow)
+            && i == domlo.x) zero_ilo = Real(0.0);
+        if ((bchi[0] == LinOpBCType::Neumann || bchi[0] == LinOpBCType::inflow)
+            && i == domhi.x) zero_ihi = Real(0.0);
+        if ((bclo[1] == LinOpBCType::Neumann || bclo[1] == LinOpBCType::inflow)
+            && j == domlo.y) zero_jlo = Real(0.0);
+        if ((bchi[1] == LinOpBCType::Neumann || bchi[1] == LinOpBCType::inflow)
+            && j == domhi.y) zero_jhi = Real(0.0);
+        if ((bclo[2] == LinOpBCType::Neumann || bclo[2] == LinOpBCType::inflow)
+            && k == domlo.z) zero_klo = Real(0.0);
+        if ((bchi[2] == LinOpBCType::Neumann || bchi[2] == LinOpBCType::inflow)
+            && k == domhi.z) zero_khi = Real(0.0);
+
+        rhs(i,j,k) += facx*(
+            vel(i-1,j-1,k  ,0)*(   -intg(i-1,j-1,k  ,i_S_1)
+                                 + vfrac(i-1,j-1,k   ))*zero_jlo*zero_khi
+           +vel(i  ,j-1,k  ,0)*(    intg(i  ,j-1,k  ,i_S_1)
+                                 - vfrac(i  ,j-1,k   ))*zero_jlo*zero_khi
+           +vel(i-1,j  ,k  ,0)*(   -intg(i-1,j  ,k  ,i_S_1)
+                                 + vfrac(i-1,j  ,k   ))*zero_jhi*zero_khi
+           +vel(i  ,j  ,k  ,0)*(    intg(i  ,j  ,k  ,i_S_1)
+                                 - vfrac(i  ,j  ,k   ))*zero_jhi*zero_khi
+           +vel(i-1,j-1,k-1,0)*(   -intg(i-1,j-1,k-1,i_S_1)
+                                 + vfrac(i-1,j-1,k-1 ))*zero_jlo*zero_klo
+           +vel(i  ,j-1,k-1,0)*(    intg(i  ,j-1,k-1,i_S_1)
+                                 - vfrac(i  ,j-1,k-1 ))*zero_jlo*zero_klo
+           +vel(i-1,j  ,k-1,0)*(   -intg(i-1,j  ,k-1,i_S_1)
+                                 + vfrac(i-1,j  ,k-1 ))*zero_jhi*zero_klo
+           +vel(i  ,j  ,k-1,0)*(    intg(i  ,j  ,k-1,i_S_1)
+                                 - vfrac(i  ,j  ,k-1 ))*zero_jhi*zero_klo )
+            + facy*(
+            vel(i-1,j-1,k  ,1)*(   -intg(i-1,j-1,k  ,i_S_1)
+                                 + vfrac(i-1,j-1,k   ))*zero_ilo*zero_khi
+           +vel(i  ,j-1,k  ,1)*(   -intg(i  ,j-1,k  ,i_S_1)
+                                 + vfrac(i  ,j-1,k   ))*zero_ihi*zero_khi
+           +vel(i-1,j  ,k  ,1)*(    intg(i-1,j  ,k  ,i_S_1)
+                                 - vfrac(i-1,j  ,k   ))*zero_ilo*zero_khi
+           +vel(i  ,j  ,k  ,1)*(    intg(i  ,j  ,k  ,i_S_1)
+                                 - vfrac(i  ,j  ,k   ))*zero_ihi*zero_khi
+           +vel(i-1,j-1,k-1,1)*(   -intg(i-1,j-1,k-1,i_S_1)
+                                 + vfrac(i-1,j-1,k-1 ))*zero_ilo*zero_klo
+           +vel(i  ,j-1,k-1,1)*(   -intg(i  ,j-1,k-1,i_S_1)
+                                 + vfrac(i  ,j-1,k-1 ))*zero_ihi*zero_klo
+           +vel(i-1,j  ,k-1,1)*(    intg(i-1,j  ,k-1,i_S_1)
+                                 - vfrac(i-1,j  ,k-1 ))*zero_ilo*zero_klo
+           +vel(i  ,j  ,k-1,1)*(    intg(i  ,j  ,k-1,i_S_1)
+                                 - vfrac(i  ,j  ,k-1 ))*zero_ihi*zero_klo )
+            + facz*(
+            vel(i-1,j-1,k  ,2)*(    intg(i-1,j-1,k  ,i_S_1)
+                                 - vfrac(i-1,j-1,k   ))*zero_ilo*zero_jlo
+           +vel(i  ,j-1,k  ,2)*(    intg(i  ,j-1,k  ,i_S_1)
+                                 - vfrac(i  ,j-1,k   ))*zero_ihi*zero_jlo
+           +vel(i-1,j  ,k  ,2)*(    intg(i-1,j  ,k  ,i_S_1)
+                                 - vfrac(i-1,j  ,k   ))*zero_ilo*zero_jhi
+           +vel(i  ,j  ,k  ,2)*(    intg(i  ,j  ,k  ,i_S_1)
+                                 - vfrac(i  ,j  ,k   ))*zero_ihi*zero_jhi
+           +vel(i-1,j-1,k-1,2)*(   -intg(i-1,j-1,k-1,i_S_1)
+                                 + vfrac(i-1,j-1,k-1 ))*zero_ilo*zero_jlo
+           +vel(i  ,j-1,k-1,2)*(   -intg(i  ,j-1,k-1,i_S_1)
+                                 + vfrac(i  ,j-1,k-1 ))*zero_ihi*zero_jlo
+           +vel(i-1,j  ,k-1,2)*(   -intg(i-1,j  ,k-1,i_S_1)
+                                 + vfrac(i-1,j  ,k-1 ))*zero_ilo*zero_jhi
+           +vel(i  ,j  ,k-1,2)*(   -intg(i  ,j  ,k-1,i_S_1)
+                                 + vfrac(i  ,j  ,k-1 ))*zero_ihi*zero_jhi );
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                       Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
+                      Array4<Real const> const& bareaarr,
                       Array4<Real const> const& sintg,
                       Array4<Real const> const& eb_vel_dot_n) noexcept
 {
@@ -6823,7 +6917,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
 
     if (!msk(i,j,k)) {
         rhs(i,j,k) += fac_eb*(
-            eb_vel_dot_n(i-1,j-1,k  )*(           sintg(i-1,j-1,k  ,i_B_1)
+            eb_vel_dot_n(i-1,j-1,k  )*(        bareaarr(i-1,j-1,k)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_x)
                                         +Real(2.)*sintg(i-1,j-1,k  ,i_B_y)
                                         +Real(4.)*sintg(i-1,j-1,k  ,i_B_x_y)
@@ -6831,7 +6925,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         -Real(4.)*sintg(i-1,j-1,k  ,i_B_y_z)
                                         -Real(4.)*sintg(i-1,j-1,k  ,i_B_x_z)
                                         -Real(8.)*sintg(i-1,j-1,k  ,i_B_xyz))
-           +eb_vel_dot_n(i  ,j-1,k  )*(           sintg(i  ,j-1,k  ,i_B_1)
+           +eb_vel_dot_n(i  ,j-1,k  )*(        bareaarr(i  ,j-1,k)
                                         -Real(2.)*sintg(i  ,j-1,k  ,i_B_x)
                                         +Real(2.)*sintg(i  ,j-1,k  ,i_B_y)
                                         -Real(4.)*sintg(i  ,j-1,k  ,i_B_x_y)
@@ -6839,7 +6933,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         -Real(4.)*sintg(i  ,j-1,k  ,i_B_y_z)
                                         +Real(4.)*sintg(i  ,j-1,k  ,i_B_x_z)
                                         +Real(8.)*sintg(i  ,j-1,k  ,i_B_xyz))
-           +eb_vel_dot_n(i-1,j  ,k  )*(           sintg(i-1,j  ,k  ,i_B_1)
+           +eb_vel_dot_n(i-1,j  ,k  )*(        bareaarr(i-1,j  ,k)
                                         +Real(2.)*sintg(i-1,j  ,k  ,i_B_x)
                                         -Real(2.)*sintg(i-1,j  ,k  ,i_B_y)
                                         -Real(4.)*sintg(i-1,j  ,k  ,i_B_x_y)
@@ -6847,7 +6941,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         +Real(4.)*sintg(i-1,j  ,k  ,i_B_y_z)
                                         -Real(4.)*sintg(i-1,j  ,k  ,i_B_x_z)
                                         +Real(8.)*sintg(i-1,j  ,k  ,i_B_xyz))
-           +eb_vel_dot_n(i  ,j  ,k  )*(           sintg(i  ,j  ,k  ,i_B_1)
+           +eb_vel_dot_n(i  ,j  ,k  )*(        bareaarr(i  ,j  ,k)
                                         -Real(2.)*sintg(i  ,j  ,k  ,i_B_x)
                                         -Real(2.)*sintg(i  ,j  ,k  ,i_B_y)
                                         +Real(4.)*sintg(i  ,j  ,k  ,i_B_x_y)
@@ -6855,7 +6949,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         +Real(4.)*sintg(i  ,j  ,k  ,i_B_y_z)
                                         +Real(4.)*sintg(i  ,j  ,k  ,i_B_x_z)
                                         -Real(8.)*sintg(i  ,j  ,k  ,i_B_xyz))
-           +eb_vel_dot_n(i-1,j-1,k-1)*(           sintg(i-1,j-1,k-1,i_B_1)
+           +eb_vel_dot_n(i-1,j-1,k-1)*(        bareaarr(i-1,j-1,k-1)
                                         +Real(2.)*sintg(i-1,j-1,k-1,i_B_x)
                                         +Real(2.)*sintg(i-1,j-1,k-1,i_B_y)
                                         +Real(4.)*sintg(i-1,j-1,k-1,i_B_x_y)
@@ -6863,7 +6957,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         +Real(4.)*sintg(i-1,j-1,k-1,i_B_y_z)
                                         +Real(4.)*sintg(i-1,j-1,k-1,i_B_x_z)
                                         +Real(8.)*sintg(i-1,j-1,k-1,i_B_xyz))
-           +eb_vel_dot_n(i  ,j-1,k-1)*(           sintg(i  ,j-1,k-1,i_B_1)
+           +eb_vel_dot_n(i  ,j-1,k-1)*(        bareaarr(i  ,j-1,k-1)
                                         -Real(2.)*sintg(i  ,j-1,k-1,i_B_x)
                                         +Real(2.)*sintg(i  ,j-1,k-1,i_B_y)
                                         -Real(4.)*sintg(i  ,j-1,k-1,i_B_x_y)
@@ -6871,7 +6965,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         +Real(4.)*sintg(i  ,j-1,k-1,i_B_y_z)
                                         -Real(4.)*sintg(i  ,j-1,k-1,i_B_x_z)
                                         -Real(8.)*sintg(i  ,j-1,k-1,i_B_xyz))
-           +eb_vel_dot_n(i-1,j  ,k-1)*(           sintg(i-1,j  ,k-1,i_B_1)
+           +eb_vel_dot_n(i-1,j  ,k-1)*(        bareaarr(i-1,j  ,k-1)
                                         +Real(2.)*sintg(i-1,j  ,k-1,i_B_x)
                                         -Real(2.)*sintg(i-1,j  ,k-1,i_B_y)
                                         -Real(4.)*sintg(i-1,j  ,k-1,i_B_x_y)
@@ -6879,7 +6973,7 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
                                         -Real(4.)*sintg(i-1,j  ,k-1,i_B_y_z)
                                         +Real(4.)*sintg(i-1,j  ,k-1,i_B_x_z)
                                         -Real(8.)*sintg(i-1,j  ,k-1,i_B_xyz))
-           +eb_vel_dot_n(i  ,j  ,k-1)*(           sintg(i  ,j  ,k-1,i_B_1)
+           +eb_vel_dot_n(i  ,j  ,k-1)*(        bareaarr(i  ,j  ,k-1)
                                         -Real(2.)*sintg(i  ,j  ,k-1,i_B_x)
                                         -Real(2.)*sintg(i  ,j  ,k-1,i_B_y)
                                         +Real(4.)*sintg(i  ,j  ,k-1,i_B_x_y)
@@ -6891,14 +6985,56 @@ void add_eb_flow_contribution (int i, int j, int k, Array4<Real> const& rhs,
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void correct_mismatched_barea (int i, int j, int k, Array4<Real> const& rhs,
+                               Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
+                               Array4<Real const> const& bareaarr,
+                               Array4<Real const> const& sintg,
+                               Array4<Real const> const& eb_vel_dot_n) noexcept
+{
+    Real fac_eb = Real(0.125) * dxinv[0];
+
+    if (!msk(i,j,k)) {
+        rhs(i,j,k) += fac_eb*(
+            eb_vel_dot_n(i-1,j-1,k  )*(      sintg(i-1,j-1,k  ,i_B_1)
+                                        - bareaarr(i-1,j-1,k   ))
+           +eb_vel_dot_n(i  ,j-1,k  )*(      sintg(i  ,j-1,k  ,i_B_1)
+                                        - bareaarr(i  ,j-1,k   ))
+           +eb_vel_dot_n(i-1,j  ,k  )*(      sintg(i-1,j  ,k  ,i_B_1)
+                                        - bareaarr(i-1,j  ,k   ))
+           +eb_vel_dot_n(i  ,j  ,k  )*(      sintg(i  ,j  ,k  ,i_B_1)
+                                        - bareaarr(i  ,j  ,k   ))
+           +eb_vel_dot_n(i-1,j-1,k-1)*(      sintg(i-1,j-1,k-1,i_B_1)
+                                        - bareaarr(i-1,j-1,k-1 ))
+           +eb_vel_dot_n(i  ,j-1,k-1)*(      sintg(i  ,j-1,k-1,i_B_1)
+                                        - bareaarr(i  ,j-1,k-1 ))
+           +eb_vel_dot_n(i-1,j  ,k-1)*(      sintg(i-1,j  ,k-1,i_B_1)
+                                        - bareaarr(i-1,j  ,k-1 ))
+           +eb_vel_dot_n(i  ,j  ,k-1)*(      sintg(i  ,j  ,k-1,i_B_1)
+                                        - bareaarr(i  ,j  ,k-1 )));
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real> const& rhs,
                       Array4<int const> const& msk, GpuArray<Real,AMREX_SPACEDIM> const& dxinv,
                       Array4<Real const> const& mmintg_x,
                       Array4<Real const> const& mmintg_y,
                       Array4<Real const> const& mmintg_z,
                       Array4<Real const> const& mm_ebvel,
-                      Array4<EBCellFlag const> const& flag) noexcept
+                      Array4<EBCellFlag const> const& flag,
+                      Array4<Real const> const& vfrac,
+                      Array4<Real const> const& bareaarr,
+                      Array4<Real const> const& vel,
+                      Array4<Real const> const& intg,
+                      Array4<Real const> const& sintg,
+                      Box const& nodal_domain,
+                      GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
+                      GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi,
+                      Array4<Real const> const& eb_vel_dot_n) noexcept
 {
+    correct_mismatched_vfrac(i,j,k,rhs,vel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
+    correct_mismatched_barea(i,j,k,rhs,msk,dxinv,bareaarr,sintg,eb_vel_dot_n);
+
     if (!msk(i,j,k))
     {
 
