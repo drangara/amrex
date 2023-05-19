@@ -340,6 +340,8 @@ compute_surface_integrals (MultiFab& sintgmf, IntVect nghost)
                         if (vf(i,j,k) >= almostone) {
                             for(int n = 0; n < numSurfIntgs; ++n) sintg(i,j,k,n) = 0.0;
 
+                            sintg(i,j,k,i_B_1) = ba(i,j,k);
+
                             Real apxm = apx(i  ,j  ,k  );
                             Real apxp = apx(i+1,j  ,k  );
                             Real apym = apy(i  ,j  ,k  );
