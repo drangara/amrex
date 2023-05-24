@@ -224,7 +224,7 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
                                 GpuArray<Array <Real,2>, 4> const& lo_ipts, int lo_np,
                                 GpuArray<Array <Real,2>, 4> const& hi_ipts, int hi_np,
-                                Real lo_nx, Real lo_ny, bool debug=false) noexcept
+                                Real lo_nx, Real lo_ny, Real hi_nx, Real hi_ny, bool debug=false) noexcept
 {
     AMREX_ASSERT(lo_np == 2 && hi_np == 2);
 
@@ -295,11 +295,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
 
         // Triangles
         if (    ((x1 == x3) && (std::abs(x1) == 0.5_rt) &&
-                 !((y2 == -0.5_rt) && (y4 ==  0.5_rt)) &&
-                 !((y2 ==  0.5_rt) && (y4 == -0.5_rt)))
+                 (lo_ny*hi_ny >= 0._rt))
              || ((y1 == y3) && (std::abs(y1) == 0.5_rt) &&
-                 !((x2 == -0.5_rt) && (x4 ==  0.5_rt)) &&
-                 !((x2 ==  0.5_rt) && (x4 == -0.5_rt)))) {
+                 (lo_nx*hi_nx >= 0._rt))) {
             EBFaceTriangle t;
             t.x = {x1, x3, xi};
             t.y = {y1, y3, yi};
@@ -310,11 +308,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
         }
 
         if (   ((x2 == x4) && (std::abs(x2) == 0.5_rt) &&
-                 !((y1 == -0.5_rt) && (y3 ==  0.5_rt)) &&
-                 !((y1 ==  0.5_rt) && (y3 == -0.5_rt)))
+                (lo_ny*hi_ny >= 0._rt))
             || ((y2 == y4) && (std::abs(y2) == 0.5_rt) &&
-                 !((x1 == -0.5_rt) && (x3 ==  0.5_rt)) &&
-                 !((x1 ==  0.5_rt) && (x3 == -0.5_rt)))) {
+                (lo_nx*hi_nx >= 0._rt))) {
             EBFaceTriangle t;
             t.x = {x2, x4, xi};
             t.y = {y2, y4, yi};
@@ -325,11 +321,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
         }
 
         if (   ((x2 == x3) && (std::abs(x2) == 0.5_rt) &&
-                 !((y1 == -0.5_rt) && (y4 ==  0.5_rt)) &&
-                 !((y1 ==  0.5_rt) && (y4 == -0.5_rt)))
+                (lo_ny*hi_ny >= 0._rt))
             || ((y2 == y3) && (std::abs(y2) == 0.5_rt) &&
-                 !((x1 == -0.5_rt) && (x3 ==  0.5_rt)) &&
-                 !((x1 ==  0.5_rt) && (x3 == -0.5_rt)))) {
+                (lo_nx*hi_nx >= 0._rt))) {
             EBFaceTriangle t;
             t.x = {x2, x3, xi};
             t.y = {y2, y3, yi};
@@ -340,11 +334,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
         }
 
         if (   ((x1 == x4) && (std::abs(x1) == 0.5_rt) &&
-                 !((y2 == -0.5_rt) && (y3 ==  0.5_rt)) &&
-                 !((y2 ==  0.5_rt) && (y3 == -0.5_rt)))
+                (lo_ny*hi_ny >= 0._rt))
             || ((y1 == y4) && (std::abs(y1) == 0.5_rt) &&
-                 !((x2 == -0.5_rt) && (x3 ==  0.5_rt)) &&
-                 !((x2 ==  0.5_rt) && (x3 == -0.5_rt)))) {
+                (lo_nx*hi_nx >= 0._rt))) {
             EBFaceTriangle t;
             t.x = {x1, x4, xi};
             t.y = {y1, y4, yi};
@@ -355,7 +347,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
         }
 
         // Squares
-        if (y2 == -0.5_rt && x3 == -0.5_rt && !p2 && !p3) {
+        if ((y2 == -0.5_rt && x3 == -0.5_rt) &&
+            (lo_nx*hi_ny <= 0._rt) &&
+            (!p2 && !p3)) {
             EBFaceTriangle t1;
             t1.x = {x2, -0.5_rt, xi};
             t1.y = {y2, -0.5_rt, yi};
@@ -373,7 +367,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p3 = true;
         }
 
-        if (y2 == -0.5_rt && x3 == 0.5_rt && !p2 && !p3) {
+        if ((y2 == -0.5_rt && x3 == 0.5_rt) &&
+            (lo_nx*hi_ny >= 0._rt) &&
+            (!p2 && !p3)) {
             EBFaceTriangle t1;
             t1.x = {x2,  0.5_rt, xi};
             t1.y = {y2, -0.5_rt, yi};
@@ -391,7 +387,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p3 = true;
         }
 
-        if (y1 == -0.5_rt && x3 == -0.5_rt && !p1 && !p3) {
+        if ((y1 == -0.5_rt && x3 == -0.5_rt) &&
+            (lo_nx*hi_ny <= 0._rt) &&
+            (!p1 && !p3)) {
             EBFaceTriangle t1;
             t1.x = {x1, -0.5_rt, xi};
             t1.y = {y1, -0.5_rt, yi};
@@ -409,7 +407,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p3 = true;
         }
 
-        if (y1 == -0.5_rt && x3 == 0.5_rt && !p1 && !p3) {
+        if ((y1 == -0.5_rt && x3 == 0.5_rt) &&
+            (lo_nx*hi_ny >= 0._rt) &&
+            (!p1 && !p3)) {
             EBFaceTriangle t1;
             t1.x = {x1,  0.5_rt, xi};
             t1.y = {y1, -0.5_rt, yi};
@@ -427,7 +427,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p3 = true;
         }
 
-        if (y2 == 0.5_rt && x3 == -0.5_rt && !p2 && !p3) {
+        if ((y2 == 0.5_rt && x3 == -0.5_rt) &&
+            (lo_nx*hi_ny >= 0._rt) &&
+            (!p2 && !p3)) {
             EBFaceTriangle t1;
             t1.x = {x2, -0.5_rt, xi};
             t1.y = {y2,  0.5_rt, yi};
@@ -445,7 +447,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p3 = true;
         }
 
-        if (y2 == 0.5_rt && x3 == 0.5_rt && !p2 && !p3) {
+        if ((y2 == 0.5_rt && x3 == 0.5_rt) &&
+            (lo_nx*hi_ny <= 0._rt) &&
+            (!p2 && !p3)) {
             EBFaceTriangle t1;
             t1.x = {x2, 0.5_rt, xi};
             t1.y = {y2, 0.5_rt, yi};
@@ -463,7 +467,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p3 = true;
         }
 
-        if (y2 == -0.5_rt && x4 == 0.5_rt && !p2 && !p4) {
+        if ((y2 == -0.5_rt && x4 == 0.5_rt) &&
+            (lo_nx*hi_ny >= 0._rt) &&
+            (!p2 && !p4)) {
             EBFaceTriangle t1;
             t1.x = {x2,  0.5_rt, xi};
             t1.y = {y2, -0.5_rt, yi};
@@ -481,7 +487,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p4 = true;
         }
 
-        if (x2 ==  0.5_rt && y4 == -0.5_rt && !p2 && !p4) {
+        if ((x2 ==  0.5_rt && y4 == -0.5_rt) &&
+            (lo_ny*hi_nx >= 0._rt) &&
+            (!p2 && !p4)) {
             EBFaceTriangle t1;
             t1.x = {x2,  0.5_rt, xi};
             t1.y = {y2, -0.5_rt, yi};
@@ -499,7 +507,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p4 = true;
         }
 
-        if (x1 ==  -0.5_rt && y4 == -0.5_rt && !p1 && !p4) {
+        if ((x1 == -0.5_rt && y4 == -0.5_rt) &&
+            (lo_ny*hi_nx <= 0._rt) &&
+            (!p1 && !p4)) {
             EBFaceTriangle t1;
             t1.x = {x1, -0.5_rt, xi};
             t1.y = {y1, -0.5_rt, yi};
@@ -517,7 +527,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p4 = true;
         }
 
-        if (x1 ==  -0.5_rt && y4 == 0.5_rt && !p1 && !p4) {
+        if ((x1 == -0.5_rt && y4 == 0.5_rt) &&
+            (lo_ny*hi_nx >= 0._rt) &&
+            (!p1 && !p4)) {
             EBFaceTriangle t1;
             t1.x = {x1, -0.5_rt, xi};
             t1.y = {y1,  0.5_rt, yi};
@@ -535,7 +547,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p4 = true;
         }
 
-        if (x1 ==  0.5_rt && y4 == 0.5_rt && !p1 && !p4) {
+        if ((x1 == 0.5_rt && y4 == 0.5_rt) &&
+            (lo_ny*hi_nx <= 0._rt) &&
+            (!p1 && !p4)) {
             EBFaceTriangle t1;
             t1.x = {x1, 0.5_rt, xi};
             t1.y = {y1, 0.5_rt, yi};
@@ -553,7 +567,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p4 = true;
         }
 
-        if (x1 == 0.5_rt && y3 == -0.5_rt && !p1 && !p3) {
+        if ((x1 == 0.5_rt && y3 == -0.5_rt) &&
+            (lo_ny*hi_nx >= 0._rt) &&
+            (!p1 && !p3)) {
             EBFaceTriangle t1;
             t1.x = {x1,  0.5_rt, xi};
             t1.y = {y1, -0.5_rt, yi};
@@ -571,7 +587,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p3 = true;
         }
 
-        if (x1 == -0.5_rt && y3 == -0.5_rt && !p1 && !p3) {
+        if ((x1 == -0.5_rt && y3 == -0.5_rt) &&
+            (lo_ny*hi_nx <= 0._rt) &&
+            (!p1 && !p3)) {
             EBFaceTriangle t1;
             t1.x = {x1, -0.5_rt, xi};
             t1.y = {y1, -0.5_rt, yi};
@@ -589,7 +607,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p3 = true;
         }
 
-        if (y2 == 0.5_rt && x4 == 0.5_rt && !p2 && !p4) {
+        if ((y2 == 0.5_rt && x4 == 0.5_rt) &&
+            (lo_nx*hi_ny <= 0._rt) &&
+            (!p2 && !p4)) {
             EBFaceTriangle t1;
             t1.x = {x2, 0.5_rt, xi};
             t1.y = {y2, 0.5_rt, yi};
@@ -607,7 +627,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p4 = true;
         }
 
-        if (x2 ==  0.5_rt && y4 == 0.5_rt && !p2 && !p4) {
+        if ((x2 ==  0.5_rt && y4 == 0.5_rt) &&
+            (lo_ny*hi_nx <= 0._rt) &&
+            (!p2 && !p4)) {
             EBFaceTriangle t1;
             t1.x = {x2, 0.5_rt, xi};
             t1.y = {y2, 0.5_rt, yi};
@@ -890,7 +912,8 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
         extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i-1,j,k,1), bnorm(i-1,j,k,2));
     } else if (lo_np == 2 && hi_np == 2) {
         extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
-                                  bnorm(i-1,j,k,1), bnorm(i-1,j,k,2));
+                                  bnorm(i-1,j,k,1), bnorm(i-1,j,k,2),
+                                  bnorm(i,j,k,1), bnorm(i,j,k,2));
     }
 
     for (int n = 0; n < nt; ++n) {
@@ -1000,7 +1023,8 @@ void compute_mmintg_on_xz_face(int i, int j, int k,
         extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i,j-1,k,0), bnorm(i,j-1,k,2));
     } else if (lo_np == 2 && hi_np == 2) {
         extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
-                                  bnorm(i,j-1,k,0), bnorm(i,j-1,k,2));
+                                  bnorm(i,j-1,k,0), bnorm(i,j-1,k,2),
+                                  bnorm(i,j,k,0), bnorm(i,j,k,2));
     }
 
     for (int n = 0; n < nt; ++n) {
@@ -1110,7 +1134,8 @@ void compute_mmintg_on_xy_face(int i, int j, int k,
         extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i,j,k-1,0), bnorm(i,j,k-1,1));
     } else if (lo_np == 2 && hi_np == 2) {
         extract_triangles_on_face(triangles, nt, lo_ipts, lo_np, hi_ipts, hi_np,
-                                  bnorm(i,j,k-1,0), bnorm(i,j,k-1,1));
+                                  bnorm(i,j,k-1,0), bnorm(i,j,k-1,1),
+                                  bnorm(i,j,k,0), bnorm(i,j,k,1));
     }
 
     for (int n = 0; n < nt; ++n) {
