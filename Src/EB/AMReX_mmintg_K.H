@@ -30,15 +30,18 @@ void sanitize_ipts(GpuArray<Array <Real,2>, 4>& ipts, int& np) noexcept {
 
     // Remove duplicates
     if (np == 3) {
-        if (   std::abs(ipts[0][0] - ipts[1][0]) <= eps
-            && std::abs(ipts[0][1] - ipts[1][1]) <= eps) {
+        // More relaxed tolerance
+        Real epsd = 1.e-12;
+
+        if (   std::abs(ipts[0][0] - ipts[1][0]) <= epsd
+            && std::abs(ipts[0][1] - ipts[1][1]) <= epsd) {
             ipts[1] = {ipts[2][0], ipts[2][1]};
             --np;
-        } else if (   std::abs(ipts[1][0] - ipts[2][0]) <= eps
-                   && std::abs(ipts[1][1] - ipts[2][1]) <= eps) {
+        } else if (   std::abs(ipts[1][0] - ipts[2][0]) <= epsd
+                   && std::abs(ipts[1][1] - ipts[2][1]) <= epsd) {
             --np;
-        } else if (   std::abs(ipts[0][0] - ipts[2][0]) <= eps
-                   && std::abs(ipts[0][1] - ipts[2][1]) <= eps) {
+        } else if (   std::abs(ipts[0][0] - ipts[2][0]) <= epsd
+                   && std::abs(ipts[0][1] - ipts[2][1]) <= epsd) {
             --np;
         }
     }
@@ -224,7 +227,7 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
                                 GpuArray<Array <Real,2>, 4> const& lo_ipts, int lo_np,
                                 GpuArray<Array <Real,2>, 4> const& hi_ipts, int hi_np,
-                                Real lo_nx, Real lo_ny, Real hi_nx, Real hi_ny, bool debug=false) noexcept
+                                Real lo_nx, Real lo_ny, Real hi_nx, Real hi_ny) noexcept
 {
     AMREX_ASSERT(lo_np == 2 && hi_np == 2);
 
