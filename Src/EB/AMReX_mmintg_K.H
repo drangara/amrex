@@ -910,7 +910,15 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
     int nt = 0;
 
     if (lo_np == 0 && hi_np == 2) {
-        extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, flag(i-1,j,k).isRegular());
+        bool sign = true;
+        if (flag(i-1,j,k).isSingleValued()) {
+            if (bnorm(i-1,j,k,1) > 0._rt) {
+                sign = false;
+            }
+        } else {
+            sign = flag(i-1,j,k).isRegular();
+        }
+        extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, sign);
     } else if (lo_np == 2 && hi_np ==0) {
         extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i-1,j,k,1), bnorm(i-1,j,k,2));
     } else if (lo_np == 2 && hi_np == 2) {
@@ -1021,7 +1029,15 @@ void compute_mmintg_on_xz_face(int i, int j, int k,
     int nt = 0;
 
     if (lo_np == 0 && hi_np == 2) {
-        extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, flag(i,j-1,k).isRegular());
+        bool sign = true;
+        if (flag(i,j-1,k).isSingleValued()) {
+            if (bnorm(i,j-1,k,1) > 0._rt) {
+                sign = false;
+            }
+        } else {
+            sign = flag(i,j-1,k).isRegular();
+        }
+        extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, sign);
     } else if (lo_np == 2 && hi_np ==0) {
         extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i,j-1,k,0), bnorm(i,j-1,k,2));
     } else if (lo_np == 2 && hi_np == 2) {
@@ -1132,6 +1148,14 @@ void compute_mmintg_on_xy_face(int i, int j, int k,
     int nt = 0;
 
     if (lo_np == 0 && hi_np == 2) {
+        bool sign = true;
+        if (flag(i,j,k-1).isSingleValued()) {
+            if (bnorm(i,j,k-1,1) > 0._rt) {
+                sign = false;
+            }
+        } else {
+            sign = flag(i,j,k-1).isRegular();
+        }
         extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, flag(i,j,k-1).isRegular());
     } else if (lo_np == 2 && hi_np ==0) {
         extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i,j,k-1,0), bnorm(i,j,k-1,1));
