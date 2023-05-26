@@ -982,7 +982,7 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
     if (lo_np == 0 && hi_np == 2) {
         bool sign = true;
         if (flag(i-1,j,k).isSingleValued()) {
-            if (bnorm(i-1,j,k,1) > 0._rt) {
+            if (bnorm(i-1,j,k,0) > 0._rt) {
                 sign = false;
             }
         } else {
@@ -1220,7 +1220,7 @@ void compute_mmintg_on_xy_face(int i, int j, int k,
     if (lo_np == 0 && hi_np == 2) {
         bool sign = true;
         if (flag(i,j,k-1).isSingleValued()) {
-            if (bnorm(i,j,k-1,1) > 0._rt) {
+            if (bnorm(i,j,k-1,2) > 0._rt) {
                 sign = false;
             }
         } else {
