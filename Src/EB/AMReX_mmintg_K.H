@@ -570,6 +570,26 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p4 = true;
         }
 
+        if ((x1 == 0.5_rt && y4 == -0.5_rt) &&
+            (lo_ny*hi_nx >= 0._rt) &&
+            (!p1 && !p4)) {
+            EBFaceTriangle t1;
+            t1.x = {x1,  0.5_rt, xi};
+            t1.y = {y1, -0.5_rt, yi};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x4,  0.5_rt, xi};
+            t2.y = {y4, -0.5_rt, yi};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            p1 = true;
+            p4 = true;
+        }
+
         if ((x1 == 0.5_rt && y3 == -0.5_rt) &&
             (lo_ny*hi_nx >= 0._rt) &&
             (!p1 && !p3)) {
@@ -740,6 +760,56 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
                 }
             } else {
                 if (lo_ny > 0._rt) {
+                    t1.sign = false;
+                }
+            }
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x2, x4, x3};
+            t2.y = {y2, y4, y3};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+        } else if (x1 == -0.5_rt && x2 == 0.5_rt && x3 == -0.5_rt && x4 == 0.5_rt) {
+            EBFaceTriangle t1;
+            t1.x = {x1, x3, x2};
+            t1.y = {y1, y3, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (y1 > y3) {
+                if (lo_ny < 0._rt) {
+                    t1.sign = false;
+                }
+            } else {
+                if (lo_ny > 0._rt) {
+                    t1.sign = false;
+                }
+            }
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x2, x4, x3};
+            t2.y = {y2, y4, y3};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+        } else if (y1 == -0.5_rt && y2 == 0.5_rt && y3 == -0.5_rt && y4 == 0.5_rt) {
+            EBFaceTriangle t1;
+            t1.x = {x1, x3, x2};
+            t1.y = {y1, y3, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (x1 > x3) {
+                if (lo_nx < 0._rt) {
+                    t1.sign = false;
+                }
+            } else {
+                if (lo_nx > 0._rt) {
                     t1.sign = false;
                 }
             }
