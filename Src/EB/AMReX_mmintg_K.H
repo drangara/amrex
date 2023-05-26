@@ -258,21 +258,21 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
     Real xi = 1.0_rt;
     Real yi = 1.0_rt;
 
-    if ((x1 == x2) && (x3 != x4)) {
+    if ((std::abs(x1 - x2) <= eps) && (std::abs(x3 - x4) > eps)) {
         Real ahi = (y4 - y3)/(x4 - x3);
         Real bhi = y3 - ahi*x3;
 
         xi = x1;
         yi = ahi*xi + bhi;
 
-    } else if ((x1 != x2) && (x3 == x4)) {
+    } else if ((std::abs(x1 - x2) > eps) && (std::abs(x3 - x4) <= eps)) {
         Real alo = (y2 - y1)/(x2 - x1);
         Real blo = y1 - alo*x1;
 
         xi = x3;
         yi = alo*xi + blo;
 
-    } else if ((x1 != x2) && (x3 != x4)){
+    } else if ((std::abs(x1 - x2) > eps) && (std::abs(x3 - x4) > eps)) {
         Real alo = (y2 - y1)/(x2 - x1);
         Real blo = y1 - alo*x1;
 
