@@ -25,7 +25,6 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
 
         const auto& my_factory = dynamic_cast<EBFArrayBoxFactory const&>(mmintgmf[idim]->Factory());
 
-        const MultiFab&    vfrac = my_factory.getVolFrac();
         const MultiCutFab& bcent = my_factory.getBndryCent();
         const MultiCutFab& bnorm = my_factory.getBndryNormal();
         const auto&        flags = my_factory.getMultiEBCellFlagFab();
@@ -63,8 +62,7 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
                     amrex::ParallelFor(bx,
                     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                     {
-                        const auto ebflag = fg(i,j,k);
-                        if(idim == 0) {
+                        if (idim == 0) {
                             compute_mmintg_on_yz_face(i,j,k,mmintg,bc,bn,fg);
                         } else if (idim == 1) {
                             compute_mmintg_on_xz_face(i,j,k,mmintg,bc,bn,fg);
@@ -81,8 +79,7 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
                     for (int j = lo.y; j <= hi.y; ++j)
                     for (int i = lo.x; i <= hi.x; ++i)
                     {
-                        const auto ebflag = fg(i,j,k);
-                        if(idim == 0) {
+                        if (idim == 0) {
                             compute_mmintg_on_yz_face(i,j,k,mmintg,bc,bn,fg);
                         } else if (idim == 1) {
                             compute_mmintg_on_xz_face(i,j,k,mmintg,bc,bn,fg);

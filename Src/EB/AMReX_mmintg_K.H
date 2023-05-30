@@ -59,10 +59,6 @@ void order_triangle (EBFaceTriangle& t, Real nx, Real ny) noexcept
     Real x2 = t.x[1];
     Real y2 = t.y[1];
 
-    Real x3 = t.x[2];
-    Real y3 = t.y[2];
-
-
     if (x1 == x2 && x1 == -0.5_rt) {
         if (y1 < y2) {
             rev_order = true;
@@ -151,7 +147,7 @@ void extract_triangle_on_face_hi (GpuArray<EBFaceTriangle, 4>& triangles, int& n
                                   GpuArray<Array <Real,2>, 4> const& ipts, int np,
                                   bool sign) noexcept
 {
-    AMREX_ASSERT(np == 2);
+    AMREX_ALWAYS_ASSERT(np == 2);
 
     Real x1 = ipts[0][0];
     Real x2 = ipts[1][0];
@@ -182,7 +178,8 @@ void extract_triangle_on_face_lo (GpuArray<EBFaceTriangle, 4>& triangles, int& n
                                   GpuArray<Array <Real,2>, 4> const& ipts, int np,
                                   Real nx, Real ny) noexcept
 {
-    AMREX_ASSERT(np == 2);
+    AMREX_ALWAYS_ASSERT(np == 2);
+    ignore_unused(ny);
 
     Real x1 = ipts[0][0];
     Real x2 = ipts[1][0];
@@ -210,7 +207,7 @@ void extract_triangle_on_face_lo (GpuArray<EBFaceTriangle, 4>& triangles, int& n
         if (nx < 0._rt) {
             sign = false;
         }
-    }else if (x1 == 0.5_rt && y2 == -0.5_rt) {
+    } else if (x1 == 0.5_rt && y2 == -0.5_rt) {
         t.x = {x1, x2,  0.5_rt};
         t.y = {y1, y2, -0.5_rt};
         if (nx > 0._rt) {
@@ -229,7 +226,7 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
                                 GpuArray<Array <Real,2>, 4> const& hi_ipts, int hi_np,
                                 Real lo_nx, Real lo_ny, Real hi_nx, Real hi_ny) noexcept
 {
-    AMREX_ASSERT(lo_np == 2 && hi_np == 2);
+    AMREX_ALWAYS_ASSERT(lo_np == 2 && hi_np == 2);
 
     Real x1 = lo_ipts[0][0];
     Real x2 = lo_ipts[1][0];
@@ -1226,7 +1223,7 @@ void compute_mmintg_on_xy_face(int i, int j, int k,
         } else {
             sign = flag(i,j,k-1).isRegular();
         }
-        extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, flag(i,j,k-1).isRegular());
+        extract_triangle_on_face_hi(triangles, nt, hi_ipts, hi_np, sign);
     } else if (lo_np == 2 && hi_np ==0) {
         extract_triangle_on_face_lo(triangles, nt, lo_ipts, lo_np, bnorm(i,j,k-1,0), bnorm(i,j,k-1,1));
     } else if (lo_np == 2 && hi_np == 2) {
