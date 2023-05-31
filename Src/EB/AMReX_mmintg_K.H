@@ -172,9 +172,21 @@ void extract_triangle_on_face_hi (GpuArray<EBFaceTriangle, 4>& triangles, int& n
     } else if (x1 == -0.5_rt && y2 == -0.5_rt) {
         t.x = {x1, -0.5_rt, x2};
         t.y = {y1, -0.5_rt, y2};
-    }else if (x1 == 0.5_rt && y2 == -0.5_rt) {
+    } else if (x1 == 0.5_rt && y2 == -0.5_rt) {
         t.x = {x1, x2,  0.5_rt};
         t.y = {y1, y2, -0.5_rt};
+    } else if (y1 == -0.5_rt && x2 == 0.5_rt) {
+        t.x = {x2, x1,  0.5_rt};
+        t.y = {y2, y1, -0.5_rt};
+    } else if (y1 == 0.5_rt && x2 == 0.5_rt) {
+        t.x = {x1, x2, 0.5_rt};
+        t.y = {y1, y2, 0.5_rt};
+    } else if (y1 == -0.5_rt && x2 == -0.5_rt) {
+        t.x = {x2, -0.5_rt, x1};
+        t.y = {y2, -0.5_rt, y1};
+    } else if (y1 == 0.5_rt && x2 == -0.5_rt) {
+        t.x = {x2, x1, -0.5_rt};
+        t.y = {y2, y1,  0.5_rt};
     }
 
     t.sign = sign;
@@ -240,8 +252,8 @@ void extract_triangle_on_face_lo (GpuArray<EBFaceTriangle, 4>& triangles, int& n
             sign = false;
         }
     } else if (y1 == 0.5_rt && x2 == -0.5_rt) {
-        t.x = {x2, x1,  0.5_rt};
-        t.y = {y2, y1, -0.5_rt};
+        t.x = {x2, x1, -0.5_rt};
+        t.y = {y2, y1,  0.5_rt};
         if (ny > 0._rt) {
             sign = false;
         }
