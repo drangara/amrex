@@ -994,11 +994,7 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
         const auto *factory = dynamic_cast<EBFArrayBoxFactory const*>(m_factory[ilev][0].get());
         const FabArray<EBCellFlagFab>* flags = (factory) ? &(factory->getMultiEBCellFlagFab()) : nullptr;
         const MultiFab* vfrac = (factory) ? &(factory->getVolFrac()) : nullptr;
-#if (AMREX_SPACEDIM == 3)
         const MultiCutFab* barea = (factory) ? &(factory->getBndryArea()) : nullptr;
-        const MultiCutFab* bcent = (factory) ? &(factory->getBndryCent()) : nullptr;
-        const MultiCutFab* bnorm = (factory) ? &(factory->getBndryNormal()) : nullptr;
-#endif
         const MultiFab* intg = m_integral[ilev].get();
         const MultiFab* sintg = m_surface_integral[ilev].get();
 #if (AMREX_SPACEDIM == 3)
@@ -1059,8 +1055,6 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
                         });
 
 #if (AMREX_SPACEDIM == 3)
-                        Array4<Real const> const& bcentarr = bcent->const_array(mfi);
-                        Array4<Real const> const& bnormarr = bnorm->const_array(mfi);
                         Array4<Real const> const& mm_ebvel = m_mm_ebvel[ilev]->const_array(mfi);
                         Array4<Real const> const& mmintgxarr = mmintgx->const_array(mfi);
                         Array4<Real const> const& mmintgyarr = mmintgy->const_array(mfi);
