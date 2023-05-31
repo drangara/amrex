@@ -5,6 +5,13 @@
 
 namespace amrex::mismatched_intg {
 
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void swap_vars (Real& a, Real& b) noexcept {
+    Real tmp = a;
+    a = b;
+    b = tmp;
+}
+
 // Order of points implicity matter.
 // The first point must lie on lo face.
 struct EBFaceTriangle {
@@ -15,7 +22,7 @@ struct EBFaceTriangle {
 };
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void sanitize_ipts(GpuArray<Array <Real,2>, 4>& ipts, int& np) noexcept {
+void sanitize_ipts (GpuArray<Array <Real,2>, 4>& ipts, int& np) noexcept {
     Real eps = 100*std::numeric_limits<Real>::epsilon();
 
     for (int n = 0; n < np; ++n) {
@@ -107,8 +114,8 @@ void order_triangle (EBFaceTriangle& t, Real nx, Real ny) noexcept
     }
 
     if (rev_order) {
-        std::swap(t.x[0],t.x[1]);
-        std::swap(t.y[0],t.y[1]);
+        swap_vars(t.x[0],t.x[1]);
+        swap_vars(t.y[0],t.y[1]);
     }
 
     t.sign = sign;

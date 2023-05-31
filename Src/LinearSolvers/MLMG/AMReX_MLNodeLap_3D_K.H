@@ -7021,7 +7021,6 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                       Array4<Real const> const& mmintg_y,
                       Array4<Real const> const& mmintg_z,
                       Array4<Real const> const& mm_ebvel,
-                      Array4<EBCellFlag const> const& flag,
                       Array4<Real const> const& vfrac,
                       Array4<Real const> const& bareaarr,
                       Array4<Real const> const& vel,
