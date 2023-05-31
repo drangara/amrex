@@ -149,6 +149,7 @@ void add_to_mmintg (int i, int j, int k,
 
 }
 
+//TODO: try to consolidate into "extract_triangles_on_face"
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void extract_triangle_on_face_hi (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
                                   GpuArray<Array <Real,2>, 4> const& ipts, int np,
@@ -180,6 +181,7 @@ void extract_triangle_on_face_hi (GpuArray<EBFaceTriangle, 4>& triangles, int& n
     triangles[nt++] = t;
 }
 
+//TODO: try to consolidate into "extract_triangles_on_face"
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void extract_triangle_on_face_lo (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
                                   GpuArray<Array <Real,2>, 4> const& ipts, int np,
@@ -673,6 +675,10 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             p2 = true;
             p4 = true;
         }
+
+        // Sanity check
+        AMREX_ALWAYS_ASSERT_WITH_MESSAGE((p1 && p2 && p3 && p4), "Something went wrong when extracting triangles");
+
     } else {
 
         // Trapezoids
