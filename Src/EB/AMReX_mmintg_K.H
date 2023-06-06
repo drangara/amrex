@@ -722,7 +722,8 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
     } else {
 
         // Trapezoids
-        if (x1 == 0.5_rt && y2 == 0.5_rt && x3 == 0.5_rt && y4 == 0.5_rt) {
+        if (x1 == 0.5_rt && y2 == 0.5_rt && x3 == 0.5_rt && y4 == 0.5_rt &&
+            (lo_ny*hi_ny >= 0._rt) && (lo_nx*hi_nx >= 0._rt)) {
             EBFaceTriangle t1;
             t1.x = {x1, x3, x2};
             t1.y = {y1, y3, y2};
@@ -747,7 +748,8 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             t2.sign = t1.sign;
             triangles[nt++] = t2;
 
-        } else if (x1 == -0.5_rt && y2 == -0.5_rt && x3 == -0.5_rt && y4 == -0.5_rt) {
+        } else if (x1 == -0.5_rt && y2 == -0.5_rt && x3 == -0.5_rt && y4 == -0.5_rt &&
+                   (lo_ny*hi_ny >= 0._rt) && (lo_nx*hi_nx >= 0._rt)) {
             EBFaceTriangle t1;
             t1.x = {x1, x3, x2};
             t1.y = {y1, y3, y2};
@@ -772,7 +774,8 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             t2.sign = t1.sign;
             triangles[nt++] = t2;
 
-        } else if (x1 == -0.5_rt && y2 == 0.5_rt && x3 == -0.5_rt && y4 == 0.5_rt) {
+        } else if (x1 == -0.5_rt && y2 == 0.5_rt && x3 == -0.5_rt && y4 == 0.5_rt &&
+                   (lo_ny*hi_ny >= 0._rt) && (lo_nx*hi_nx >= 0._rt)) {
             EBFaceTriangle t1;
             t1.x = {x1, x3, x2};
             t1.y = {y1, y3, y2};
@@ -797,7 +800,8 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             t2.sign = t1.sign;
             triangles[nt++] = t2;
 
-        } else if (x1 == 0.5_rt && y2 == -0.5_rt && x3 == 0.5_rt && y4 == -0.5_rt) {
+        } else if (x1 == 0.5_rt && y2 == -0.5_rt && x3 == 0.5_rt && y4 == -0.5_rt &&
+                   (lo_ny*hi_ny >= 0._rt) && (lo_nx*hi_nx >= 0._rt)) {
             EBFaceTriangle t1;
             t1.x = {x1, x3, x2};
             t1.y = {y1, y3, y2};
@@ -822,7 +826,8 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             t2.sign = t1.sign;
             triangles[nt++] = t2;
 
-        } else if (x1 == -0.5_rt && x2 == 0.5_rt && x3 == -0.5_rt && x4 == 0.5_rt) {
+        } else if (x1 == -0.5_rt && x2 == 0.5_rt && x3 == -0.5_rt && x4 == 0.5_rt &&
+                   (lo_ny*hi_ny >= 0._rt)) {
             EBFaceTriangle t1;
             t1.x = {x1, x3, x2};
             t1.y = {y1, y3, y2};
@@ -847,7 +852,8 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             t2.sign = t1.sign;
             triangles[nt++] = t2;
 
-        } else if (y1 == -0.5_rt && y2 == 0.5_rt && y3 == -0.5_rt && y4 == 0.5_rt) {
+        } else if (y1 == -0.5_rt && y2 == 0.5_rt && y3 == -0.5_rt && y4 == 0.5_rt &&
+                   (lo_nx*hi_nx >= 0._rt)) {
             EBFaceTriangle t1;
             t1.x = {x1, x3, x2};
             t1.y = {y1, y3, y2};
@@ -928,6 +934,9 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             order_triangle(t2, lo_nx, lo_ny);
             t2.sign = !t1.sign;
             triangles[nt++] = t2;
+
+        } else {
+            //Abort("Something went wrong when extracting triangles");
         }
 
     }
