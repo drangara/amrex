@@ -41,7 +41,7 @@ compute_mmintegral (const Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> & mmi
             Array4<Real> const& mmintg = mmintgmf[idim]->array(mfi);
 
             const auto& flagfab = flags[mfi];
-            auto typ = flagfab.getType(bx);
+            auto typ = flagfab.getType(grow(bx, 1));
 
             if (typ == FabType::covered || typ == FabType::regular)
             {

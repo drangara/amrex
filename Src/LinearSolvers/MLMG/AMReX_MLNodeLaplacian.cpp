@@ -1053,17 +1053,39 @@ MLNodeLaplacian::setEBInflowVelocity (int amrlev, const MultiFab& eb_vel)
         if (flagfab.getType(bx) == FabType::singlevalued) {
             Array4<Real> const& eb_vel_dot_n = m_eb_vel_dot_n[amrlev]->array(mfi);
             Array4<Real const> const& ebvelin = eb_vel.const_array(mfi);
-            Array4<Real      > const& mm_ebvel = m_mm_ebvel[amrlev]->array(mfi);
             Array4<Real const> const& bnorm = ebfactory->getBndryNormal().const_array(mfi);
-            Array4<EBCellFlag const> const& flag = flagfab.const_array();
 
-            ParallelFor(bx, [eb_vel_dot_n,ebvelin,mm_ebvel,bnorm,flag]
+            ParallelFor(bx, [eb_vel_dot_n,ebvelin,bnorm]
              AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
                 for(int n = 0; n < AMREX_SPACEDIM; ++n)
                 {
                     eb_vel_dot_n(i,j,k) += ebvelin(i,j,k,n)*bnorm(i,j,k,n);
+                }
+            });
+        }
+    }
 
+    m_eb_vel_dot_n[amrlev]->FillBoundary(m_geom[amrlev][mglev].periodicity());
+
+#ifdef AMREX_USE_OMP
+#pragma omp parallel if (Gpu::notInLaunchRegion())
+#endif
+    for (MFIter mfi(*m_mm_ebvel[amrlev], mfi_info); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.tilebox();
+        const auto& flagfab = ebfactory->getMultiEBCellFlagFab()[mfi];
+
+        if (flagfab.getType(grow(bx,1)) == FabType::singlevalued) {
+            Array4<Real const> const& ebvelin = eb_vel.const_array(mfi);
+            Array4<Real      > const& mm_ebvel = m_mm_ebvel[amrlev]->array(mfi);
+            Array4<EBCellFlag const> const& flag = flagfab.const_array();
+
+            ParallelFor(bx, [ebvelin,mm_ebvel,flag]
+             AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                for(int n = 0; n < AMREX_SPACEDIM; ++n)
+                {
                     mm_ebvel(i,j,k,n)   = ebvelin(i,j,k,n);
                     if (!flag(i,j,k).isSingleValued()) {
                         if (n == 0) {
@@ -1079,7 +1101,6 @@ MLNodeLaplacian::setEBInflowVelocity (int amrlev, const MultiFab& eb_vel)
         }
     }
 
-    m_eb_vel_dot_n[amrlev]->FillBoundary(m_geom[amrlev][mglev].periodicity());
     m_mm_ebvel[amrlev]->FillBoundary(m_geom[amrlev][mglev].periodicity());
 
 #if (AMREX_SPACEDIM == 2)

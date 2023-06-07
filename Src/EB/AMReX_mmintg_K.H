@@ -878,6 +878,169 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             t2.sign = t1.sign;
             triangles[nt++] = t2;
 
+        // Pentagons
+        } else if (x1 == -0.5_rt && y2 == 0.5_rt && y3 == -0.5_rt && y4 == 0.5_rt &&
+                   (lo_nx*hi_nx >= 0._rt)) {
+            EBFaceTriangle t1;
+            t1.x = {x1, -0.5_rt, x2};
+            t1.y = {y1, -0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (lo_nx > 0._rt) {
+                t1.sign = false;
+            }
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x2, x4, -0.5_rt};
+            t2.y = {y2, y4, -0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            EBFaceTriangle t3;
+            t3.x = {x3, x4, -0.5_rt};
+            t3.y = {y3, y4, -0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t3.sign = t1.sign;
+            triangles[nt++] = t3;
+
+        } else if (x1 == -0.5_rt && y2 == 0.5_rt && x3 == -0.5_rt && x4 == 0.5_rt &&
+                   (lo_ny*hi_ny >= 0._rt)) {
+            EBFaceTriangle t1;
+            t1.x = {x1, 0.5_rt, x2};
+            t1.y = {y1, 0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (lo_ny < 0._rt) {
+                t1.sign = false;
+            }
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x2, x4, 0.5_rt};
+            t2.y = {y2, y4, 0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            EBFaceTriangle t3;
+            t3.x = {x3, x4, 0.5_rt};
+            t3.y = {y3, y4, 0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t3.sign = t1.sign;
+            triangles[nt++] = t3;
+
+        } else if (x1 == 0.5_rt && y2 == 0.5_rt && x3 == -0.5_rt && x4 == 0.5_rt &&
+                   (lo_ny*hi_ny >= 0._rt)) {
+            EBFaceTriangle t1;
+            t1.x = {x1, -0.5_rt, x2};
+            t1.y = {y1,  0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (lo_ny < 0._rt) {
+                t1.sign = false;
+            }
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x2, x4, -0.5_rt};
+            t2.y = {y2, y4,  0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            EBFaceTriangle t3;
+            t3.x = {x3, x4, 0.5_rt};
+            t3.y = {y3, y4, 0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t3.sign = t1.sign;
+            triangles[nt++] = t3;
+
+        } else if (x1 == -0.5_rt && x2 == 0.5_rt && x3 == -0.5_rt && y4 == -0.5_rt &&
+                   (lo_ny*hi_ny >= 0._rt)) {
+            EBFaceTriangle t1;
+            t1.x = {x1,  0.5_rt, x2};
+            t1.y = {y1, -0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (lo_ny < 0._rt) {
+                t1.sign = false;
+            }
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x2, x4,  0.5_rt};
+            t2.y = {y2, y4, -0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            EBFaceTriangle t3;
+            t3.x = {x3, x4, 0.5_rt};
+            t3.y = {y3, y4, 0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t3.sign = t1.sign;
+            triangles[nt++] = t3;
+
+        } else if (y1 == -0.5_rt && y2 == 0.5_rt && x3 == -0.5_rt && y4 == -0.5_rt &&
+                   (lo_nx*hi_nx >= 0._rt)) {
+            EBFaceTriangle t1;
+            t1.x = {x1, -0.5_rt, x2};
+            t1.y = {y1,  0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (lo_nx < 0._rt) {
+                t1.sign = false;
+            }
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x2, x4, -0.5_rt};
+            t2.y = {y2, y4,  0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            EBFaceTriangle t3;
+            t3.x = {x3, x4, -0.5_rt};
+            t3.y = {y3, y4,  0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t3.sign = t1.sign;
+            triangles[nt++] = t3;
+
+        } else if (y1 == -0.5_rt && y2 == 0.5_rt && x3 == -0.5_rt && y4 == 0.5_rt &&
+                   (lo_nx*hi_nx >= 0._rt)) {
+            EBFaceTriangle t1;
+            t1.x = {x1, -0.5_rt, x2};
+            t1.y = {y1, -0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            t1.sign = true;
+
+            if (lo_nx < 0._rt) {
+                t1.sign = false;
+            }
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x2, x4, -0.5_rt};
+            t2.y = {y2, y4,  0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = t1.sign;
+            triangles[nt++] = t2;
+
+            EBFaceTriangle t3;
+            t3.x = {x3, x4, -0.5_rt};
+            t3.y = {y3, y4, -0.5_rt};
+            order_triangle(t2, lo_nx, lo_ny);
+            t3.sign = t1.sign;
+            triangles[nt++] = t3;
+
         // 2 disjoined triangles
         } else if (x1 == 0.5_rt && y2 == -0.5_rt && x3 == 0.5_rt && y4 == 0.5_rt) {
             EBFaceTriangle t1;
@@ -903,6 +1066,20 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             EBFaceTriangle t2;
             t2.x = {x3,  0.5_rt, x4};
             t2.y = {y3, -0.5_rt, y4};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = !t1.sign;
+            triangles[nt++] = t2;
+
+        } else if (x1 == 0.5_rt && y2 == 0.5_rt && x3 == -0.5_rt && y4 == 0.5_rt) {
+            EBFaceTriangle t1;
+            t1.x = {x1, 0.5_rt, x2};
+            t1.y = {y1, 0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x3, -0.5_rt, x4};
+            t2.y = {y3,  0.5_rt, y4};
             order_triangle(t2, lo_nx, lo_ny);
             t2.sign = !t1.sign;
             triangles[nt++] = t2;
@@ -935,8 +1112,50 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             t2.sign = !t1.sign;
             triangles[nt++] = t2;
 
+        } else if (x1 == 0.5_rt && y2 == -0.5_rt && x3 == -0.5_rt && y4 == -0.5_rt) {
+            EBFaceTriangle t1;
+            t1.x = {x1,  0.5_rt, x2};
+            t1.y = {y1, -0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x3, -0.5_rt, x4};
+            t2.y = {y3, -0.5_rt, y4};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = !t1.sign;
+            triangles[nt++] = t2;
+
+        } else if (x1 == -0.5_rt && y2 == 0.5_rt && x3 == 0.5_rt && y4 == 0.5_rt) {
+            EBFaceTriangle t1;
+            t1.x = {x1, -0.5_rt, x2};
+            t1.y = {y1,  0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x3, 0.5_rt, x4};
+            t2.y = {y3, 0.5_rt, y4};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = !t1.sign;
+            triangles[nt++] = t2;
+
+        } else if (x1 == -0.5_rt && y2 == -0.5_rt && x3 == 0.5_rt && y4 == -0.5_rt) {
+            EBFaceTriangle t1;
+            t1.x = {x1, -0.5_rt, x2};
+            t1.y = {y1, -0.5_rt, y2};
+            order_triangle(t1, lo_nx, lo_ny);
+            triangles[nt++] = t1;
+
+            EBFaceTriangle t2;
+            t2.x = {x3,  0.5_rt, x4};
+            t2.y = {y3, -0.5_rt, y4};
+            order_triangle(t2, lo_nx, lo_ny);
+            t2.sign = !t1.sign;
+            triangles[nt++] = t2;
+
         } else {
-            //Abort("Something went wrong when extracting triangles");
+            Abort("Something went wrong when extracting triangles");
         }
 
     }
