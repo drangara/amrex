@@ -109,9 +109,6 @@ foreach(D IN LISTS AMReX_SPACEDIM)
        AMReX_WriteEBSurface.H
        AMReX_EBToPVD.H
        AMReX_EBToPVD.cpp
-       AMReX_mmintg.H
-       AMReX_mmintg.cpp
-       AMReX_mmintg_K.H
        )
     endif ()
 

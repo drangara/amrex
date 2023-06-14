@@ -12,15 +12,6 @@ void swap_vars (Real& a, Real& b) noexcept {
     b = tmp;
 }
 
-// Order of points implicity matter.
-// The first point must lie on lo face.
-struct EBFaceTriangle {
-    GpuArray<Real, 3> x;
-    GpuArray<Real, 3> y;
-
-    bool sign;
-};
-
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void sanitize_ipts (GpuArray<Array <Real,2>, 4>& ipts, int& np) noexcept {
     Real eps = 100*std::numeric_limits<Real>::epsilon();
@@ -122,8 +113,7 @@ void order_triangle (EBFaceTriangle& t, Real nx, Real ny) noexcept
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void add_to_mmintg (int i, int j, int k,
-                    Array4<Real> const& mmintg,
+void add_to_mmintg (GpuArray<Real, numMmIntgs>& mmintg,
                     const EBFaceTriangle& t) noexcept
 {
     Real x1 = t.x[0];
@@ -137,10 +127,10 @@ void add_to_mmintg (int i, int j, int k,
     Real sign = t.sign ? 1._rt : -1._rt;
 
     Real det = (x2 - x1)*(y3 - y1) - (x3 - x1)*(y2 - y1);
-    mmintg(i,j,k, i_M_1)  += sign* 0.5_rt*det;
-    mmintg(i,j,k, i_M_x)  += sign*det*(x1 + x2 + x3)/6.0_rt;
-    mmintg(i,j,k, i_M_y)  += sign*det*(y1 + y2 + y3)/6.0_rt;
-    mmintg(i,j,k, i_M_xy) += sign*det*((x1*y1)/2.0_rt
+    mmintg[i_M_1]  += sign* 0.5_rt*det;
+    mmintg[i_M_x]  += sign*det*(x1 + x2 + x3)/6.0_rt;
+    mmintg[i_M_y]  += sign*det*(y1 + y2 + y3)/6.0_rt;
+    mmintg[i_M_xy] += sign*det*((x1*y1)/2.0_rt
                             + (x1*(y2 - y1) + y1*(x2 - x1))/6.0_rt
                             + (x1*(y3 - y1) + y1*(x3 - x1))/6.0_rt
                             + ((x2 - x1)*(y3 - y1) + (x3 - x1)*(y2 - y1))/24.0_rt
@@ -1163,15 +1153,15 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void compute_mmintg_on_yz_face(int i, int j, int k,
-                               Array4<Real> const& mmintg_x,
+                               GpuArray<Real, numMmIntgs>& mmintg_x,
                                Array4<Real const> const& bcent,
                                Array4<Real const> const& bnorm,
                                Array4<EBCellFlag const> const& flag) noexcept
 {
-    mmintg_x(i,j,k, i_M_1)  = 0._rt;
-    mmintg_x(i,j,k, i_M_x)  = 0._rt;
-    mmintg_x(i,j,k, i_M_y)  = 0._rt;
-    mmintg_x(i,j,k, i_M_xy) = 0._rt;
+    mmintg_x[i_M_1]  = 0._rt;
+    mmintg_x[i_M_x]  = 0._rt;
+    mmintg_x[i_M_y]  = 0._rt;
+    mmintg_x[i_M_xy] = 0._rt;
 
     GpuArray<Array<Real,2>, 4> lo_ipts;
     GpuArray<Array<Real,2>, 4> hi_ipts;
@@ -1276,21 +1266,21 @@ void compute_mmintg_on_yz_face(int i, int j, int k,
     }
 
     for (int n = 0; n < nt; ++n) {
-        add_to_mmintg(i,j,k,mmintg_x,triangles[n]);
+        add_to_mmintg(mmintg_x,triangles[n]);
     }
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void compute_mmintg_on_xz_face(int i, int j, int k,
-                               Array4<Real> const& mmintg_y,
+                               GpuArray<Real, numMmIntgs>& mmintg_y,
                                Array4<Real const> const& bcent,
                                Array4<Real const> const& bnorm,
                                Array4<EBCellFlag const> const& flag) noexcept
 {
-    mmintg_y(i,j,k, i_M_1)  = 0._rt;
-    mmintg_y(i,j,k, i_M_x)  = 0._rt;
-    mmintg_y(i,j,k, i_M_y)  = 0._rt;
-    mmintg_y(i,j,k, i_M_xy) = 0._rt;
+    mmintg_y[i_M_1]  = 0._rt;
+    mmintg_y[i_M_x]  = 0._rt;
+    mmintg_y[i_M_y]  = 0._rt;
+    mmintg_y[i_M_xy] = 0._rt;
 
     GpuArray<Array<Real,2>, 4> lo_ipts;
     GpuArray<Array<Real,2>, 4> hi_ipts;
@@ -1395,21 +1385,21 @@ void compute_mmintg_on_xz_face(int i, int j, int k,
     }
 
     for (int n = 0; n < nt; ++n) {
-        add_to_mmintg(i,j,k,mmintg_y,triangles[n]);
+        add_to_mmintg(mmintg_y,triangles[n]);
     }
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void compute_mmintg_on_xy_face(int i, int j, int k,
-                               Array4<Real> const& mmintg_z,
+                               GpuArray<Real, numMmIntgs>& mmintg_z,
                                Array4<Real const> const& bcent,
                                Array4<Real const> const& bnorm,
                                Array4<EBCellFlag const> const& flag) noexcept
 {
-    mmintg_z(i,j,k, i_M_1)  = 0._rt;
-    mmintg_z(i,j,k, i_M_x)  = 0._rt;
-    mmintg_z(i,j,k, i_M_y)  = 0._rt;
-    mmintg_z(i,j,k, i_M_xy) = 0._rt;
+    mmintg_z[i_M_1]  = 0._rt;
+    mmintg_z[i_M_x]  = 0._rt;
+    mmintg_z[i_M_y]  = 0._rt;
+    mmintg_z[i_M_xy] = 0._rt;
 
     GpuArray<Array<Real,2>, 4> lo_ipts;
     GpuArray<Array<Real,2>, 4> hi_ipts;
@@ -1514,7 +1504,7 @@ void compute_mmintg_on_xy_face(int i, int j, int k,
     }
 
     for (int n = 0; n < nt; ++n) {
-        add_to_mmintg(i,j,k,mmintg_z,triangles[n]);
+        add_to_mmintg(mmintg_z,triangles[n]);
     }
 }
 
