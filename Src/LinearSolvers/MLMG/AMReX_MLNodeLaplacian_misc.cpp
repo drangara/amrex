@@ -909,7 +909,6 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
 #ifdef AMREX_USE_EB
     if (!m_integral_built) buildIntegral();
     if (m_build_surface_integral && !m_surface_integral_built) buildSurfaceIntegral();
-    if (m_build_mismatched_integral && !m_mismatched_integral_built) buildMismatchedIntegral();
 #endif
 
 #if (AMREX_SPACEDIM == 2)
@@ -998,9 +997,8 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
         const MultiFab* intg = m_integral[ilev].get();
         const MultiFab* sintg = m_surface_integral[ilev].get();
 #if (AMREX_SPACEDIM == 3)
-        const MultiFab* mmintgx = m_mmintegral[ilev][0].get();
-        const MultiFab* mmintgy = m_mmintegral[ilev][1].get();
-        const MultiFab* mmintgz = m_mmintegral[ilev][2].get();
+        const MultiCutFab* bcent = (factory) ? &(factory->getBndryCent()) : nullptr;
+        const MultiCutFab* bnorm = (factory) ? &(factory->getBndryNormal()) : nullptr;
 #endif
 
         AMREX_ALWAYS_ASSERT(ilev == m_num_amr_levels-1 || AMRRefRatio(ilev) == 2
@@ -1056,14 +1054,14 @@ MLNodeLaplacian::compRHS (const Vector<MultiFab*>& rhs, const Vector<MultiFab*>&
 
 #if (AMREX_SPACEDIM == 3)
                         Array4<Real const> const& mm_ebvel = m_mm_ebvel[ilev]->const_array(mfi);
-                        Array4<Real const> const& mmintgxarr = mmintgx->const_array(mfi);
-                        Array4<Real const> const& mmintgyarr = mmintgy->const_array(mfi);
-                        Array4<Real const> const& mmintgzarr = mmintgz->const_array(mfi);
+                        Array4<EBCellFlag const> const& flagarr = flag.const_array();
+                        Array4<Real const> const& bcentarr = bcent->const_array(mfi);
+                        Array4<Real const> const& bnormarr = bnorm->const_array(mfi);
 
                         AMREX_HOST_DEVICE_FOR_3D(bx, i, j, k,
                         {
                             add_eb_flow_contrib_from_mismatched_faces(i,j,k,rhsarr,dmskarr,
-                                dxinvarr,mmintgxarr,mmintgyarr,mmintgzarr,mm_ebvel,
+                                dxinvarr,flagarr,bcentarr,bnormarr,mm_ebvel,
                                 vfracarr,bareaarr,velarr,intgarr,sintgarr,nddom,
                                 lobc,hibc,eb_vel_dot_n);
 

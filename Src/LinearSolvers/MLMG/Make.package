@@ -75,6 +75,10 @@ CEXE_headers   += AMReX_MLEBTensorOp.H
 CEXE_sources   += AMReX_MLEBTensorOp.cpp
 CEXE_sources   += AMReX_MLEBTensorOp_bc.cpp
 CEXE_headers   += AMReX_MLEBTensor_K.H AMReX_MLEBTensor_$(DIM)D_K.H
+
+ifeq ($(DIM),3)
+CEXE_headers   += AMReX_mmintg.H AMReX_mmintg_K.H
+endif
 endif
 
 ifneq ($(BL_NO_FORT),TRUE)

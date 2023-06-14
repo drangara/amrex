@@ -201,10 +201,6 @@ private:
     bool m_surface_integral_built = false;
     bool m_build_surface_integral = false;
     Vector<std::unique_ptr<MultiFab> > m_eb_vel_dot_n;
-
-    Vector<Array<std::unique_ptr<MultiFab>, AMREX_SPACEDIM> > m_mmintegral;
-    bool m_mismatched_integral_built = false;
-    bool m_build_mismatched_integral = false;
     Vector<std::unique_ptr<MultiFab> > m_mm_ebvel;
 #endif
 

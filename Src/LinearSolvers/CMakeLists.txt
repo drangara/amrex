@@ -75,6 +75,15 @@ foreach(D IN LISTS AMReX_SPACEDIM)
           MLMG/AMReX_MLEBTensor_K.H
           MLMG/AMReX_MLEBTensor_${D}D_K.H
           )
+
+       if (D EQUAL 3)
+          target_sources(amrex_${D}d
+             PRIVATE
+             MLMG/AMReX_mmintg.H
+             MLMG/AMReX_mmintg_K.H
+             )
+       endif ()
+
     endif ()
 
     if (AMReX_FORTRAN)
