@@ -604,6 +604,7 @@ amrex::Initialize (int& argc, char**& argv, bool build_parm_parse,
     iMultiFab::Initialize();
     VisMF::Initialize();
     AsyncOut::Initialize();
+    VectorGrowthStrategy::Initialize();
 
 #ifdef AMREX_USE_EB
     EB2::Initialize();
@@ -693,7 +694,7 @@ amrex::Finalize (amrex::AMReX* pamrex)
     BL_TINY_PROFILE_FINALIZE();
     BL_PROFILE_FINALIZE();
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
     amrex::DeallocateRandomSeedDevArray();
 #endif
 
