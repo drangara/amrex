@@ -920,8 +920,8 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             triangles[nt++] = t1;
 
             EBFaceTriangle t2;
-            t2.x = {x2, x4, 0.5_rt};
-            t2.y = {y2, y4, 0.5_rt};
+            t2.x = {x1, x3, 0.5_rt};
+            t2.y = {y1, y3, 0.5_rt};
             order_triangle(t2, lo_nx, lo_ny);
             t2.sign = t1.sign;
             triangles[nt++] = t2;
@@ -947,8 +947,8 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             triangles[nt++] = t1;
 
             EBFaceTriangle t2;
-            t2.x = {x3, -0.5_rt, x1};
-            t2.y = {y3,  0.5_rt, x1};
+            t2.x = {x4, -0.5_rt, x1};
+            t2.y = {y4,  0.5_rt, x1};
             order_triangle(t2, lo_nx, lo_ny);
             t2.sign = t1.sign;
             triangles[nt++] = t2;
