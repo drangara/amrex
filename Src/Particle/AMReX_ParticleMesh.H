@@ -26,7 +26,7 @@ auto call_f (F const& f,
         return f(p.getSuperParticle(i), fabarr, plo, dxi);
     } else if constexpr (IsCallable<F, decltype(p.getSuperParticle(i)), decltype(fabarr)>::value) {
         return f(p.getSuperParticle(i), fabarr);
-    } else if constexpr (IsCallable<F, decltype(p), decltype(fabarr), decltype(plo), decltype(dxi)>::value) {
+    } else if constexpr (IsCallable<F, decltype(p), int, decltype(fabarr), decltype(plo), decltype(dxi)>::value) {
         return f(p, i, fabarr, plo, dxi);
     } else {
         return f(p, i, fabarr);
@@ -130,7 +130,7 @@ MeshToParticle (PC& pc, MF const& mf, int lev, F&& f)
                                       pc.ParticleDistributionMap(lev),
                                       mf.nComp(), mf.nGrowVect());
 
-    if (mf_pointer != &mf) mf_pointer->ParallelCopy(mf,0,0,mf.nComp(),mf.nGrowVect(),mf.nGrowVect());
+    if (mf_pointer != &mf) {mf_pointer->ParallelCopy(mf,0,0,mf.nComp(),mf.nGrowVect(),mf.nGrowVect()); }
 
     const auto plo = pc.Geom(lev).ProbLoArray();
     const auto dxi = pc.Geom(lev).InvCellSizeArray();
@@ -154,7 +154,7 @@ MeshToParticle (PC& pc, MF const& mf, int lev, F&& f)
         });
     }
 
-    if (mf_pointer != &mf) delete mf_pointer;
+    if (mf_pointer != &mf) { delete mf_pointer; }
 }
 
 }
