@@ -996,14 +996,14 @@ void extract_triangles_on_face (GpuArray<EBFaceTriangle, 4>& triangles, int& nt,
             triangles[nt++] = t1;
 
             EBFaceTriangle t2;
-            t2.x = {x1, x4, -0.5_rt};
-            t2.y = {y1, y4,  0.5_rt};
+            t2.x = {x4, x1, -0.5_rt};
+            t2.y = {y4, y1,  0.5_rt};
             t2.sign = t1.sign;
             triangles[nt++] = t2;
 
             EBFaceTriangle t3;
             t3.x = {-0.5_rt, x3, x4};
-            t3.y = { 0.5_rt, x3, y4};
+            t3.y = { 0.5_rt, y3, y4};
             t3.sign = t1.sign;
             triangles[nt++] = t3;
 
