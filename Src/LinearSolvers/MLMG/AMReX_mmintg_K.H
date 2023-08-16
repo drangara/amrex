@@ -153,6 +153,7 @@ void extract_triangle_on_face_hi (GpuArray<EBFaceTriangle, 4>& triangles, int& n
     Real y2 = ipts[1][1];
 
     EBFaceTriangle t;
+    bool add_flag = true;
     if (x1 == -0.5_rt && y2 == 0.5_rt) {
         t.x = {x1, x2, -0.5_rt};
         t.y = {y1, y2,  0.5_rt};
@@ -165,10 +166,14 @@ void extract_triangle_on_face_hi (GpuArray<EBFaceTriangle, 4>& triangles, int& n
     } else if (x1 == 0.5_rt && y2 == -0.5_rt) {
         t.x = {x1, x2,  0.5_rt};
         t.y = {y1, y2, -0.5_rt};
+    } else {
+        add_flag = false;
     }
 
-    t.sign = sign;
-    triangles[nt++] = t;
+    if (add_flag) {
+        t.sign = sign;
+        triangles[nt++] = t;
+    }
 }
 
 //TODO: try to consolidate into "extract_triangles_on_face"
@@ -188,6 +193,7 @@ void extract_triangle_on_face_lo (GpuArray<EBFaceTriangle, 4>& triangles, int& n
     bool sign = true;
 
     EBFaceTriangle t;
+    bool add_flag = true;
     if (x1 == -0.5_rt && y2 == 0.5_rt) {
         t.x = {x1, x2, -0.5_rt};
         t.y = {y1, y2,  0.5_rt};
@@ -212,10 +218,14 @@ void extract_triangle_on_face_lo (GpuArray<EBFaceTriangle, 4>& triangles, int& n
         if (nx > 0._rt) {
             sign = false;
         }
+    } else {
+        add_flag = false;
     }
 
-    t.sign = sign;
-    triangles[nt++] = t;
+    if (add_flag) {
+        t.sign = sign;
+        triangles[nt++] = t;
+    }
 }
 
 //TODO: Improve this routine. Too many special cases!!
