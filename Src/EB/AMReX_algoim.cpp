@@ -24,7 +24,7 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
 
     const auto& my_factory = dynamic_cast<EBFArrayBoxFactory const&>(intgmf.Factory());
 
-    // const MultiFab&    vfrac = my_factory.getVolFrac();
+    const MultiFab&    vfrac = my_factory.getVolFrac();
     const MultiCutFab& bcent = my_factory.getBndryCent();
     const MultiCutFab& bnorm = my_factory.getBndryNormal();
     const auto&        flags = my_factory.getMultiEBCellFlagFab();
@@ -59,7 +59,7 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
         }
         else
         {
-            // auto const& vf = vfrac.array(mfi);
+            auto const& vf = vfrac.array(mfi);
             auto const& bc = bcent.array(mfi);
             auto const& bn = bnorm.array(mfi);
             auto const& fg = flagfab.array();
@@ -120,6 +120,12 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
                                                    { return x*y*z; });
                         intg(i,j,k,i_S_1    ) = q([] AMREX_GPU_DEVICE (Real /*x*/, Real /*y*/, Real /*z*/) noexcept
                                                    { return 1; });
+
+                        constexpr Real eps = Real(100.)*std::numeric_limits<Real>::epsilon();
+                        constexpr Real almostone = Real(1.) - eps;
+                        if (vf(i,j,k) >= almostone) {
+                            intg(i,j,k,i_S_1) = 1.0_rt;
+                        }
                     }
                 });
             }
@@ -182,6 +188,12 @@ compute_integrals (MultiFab& intgmf, IntVect nghost)
                                                    { return x*y*z; });
                         intg(i,j,k,i_S_1    ) = q.eval([](Real /*x*/, Real /*y*/, Real /*z*/) noexcept
                                                    { return 1; });
+
+                        constexpr Real eps = Real(100.)*std::numeric_limits<Real>::epsilon();
+                        constexpr Real almostone = Real(1.) - eps;
+                        if (vf(i,j,k) >= almostone) {
+                            intg(i,j,k,i_S_1) = 1.0_rt;
+                        }
                     }
                 }}}
             }
@@ -296,6 +308,8 @@ compute_surface_integrals (MultiFab& sintgmf, IntVect nghost)
                             } else {
                                  amrex::Abort("amrex::algoim::compute_surface_integrals: we are in trouble");
                             }
+                        } else if ((vf(i,j,k) >= almostone) && ba(i,j,k) <= 100._rt*eps) {
+                            for(int n = 0; n < numSurfIntgs; ++n) { sintg(i,j,k,n) = 0.0; }
                         } else {
                             EBPlane phi(bc(i,j,k,0),bc(i,j,k,1),bc(i,j,k,2),
                                         bn(i,j,k,0),bn(i,j,k,1),bn(i,j,k,2));
@@ -366,6 +380,8 @@ compute_surface_integrals (MultiFab& sintgmf, IntVect nghost)
                             } else {
                                  amrex::Abort("amrex::algoim::compute_surface_integrals: we are in trouble");
                             }
+                        } else if ((vf(i,j,k) >= almostone) && ba(i,j,k) <= 100._rt*eps) {
+                            for(int n = 0; n < numSurfIntgs; ++n) { sintg(i,j,k,n) = 0.0; }
                         } else {
                             EBPlane phi(bc(i,j,k,0),bc(i,j,k,1),bc(i,j,k,2),
                                         bn(i,j,k,0),bn(i,j,k,1),bn(i,j,k,2));
