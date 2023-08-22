@@ -7076,140 +7076,97 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
         Real fac_eb = Real(0.25)*dxinv[0];
 
         // x faces
-        {
-            GpuArray<Real, numMmIntgs> mmintg_x;
-            mismatched_intg::compute_mmintg_on_yz_face(i,j,k,mmintg_x,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i,j,k,0)*(
-                        mmintg_x[i_M_1]
-                - 2._rt*mmintg_x[i_M_x]
-                - 2._rt*mmintg_x[i_M_y]
-                + 4._rt*mmintg_x[i_M_xy]);
-        }
+        GpuArray<GpuArray<Real, numMmIntgs>, 4> mmintgs_x;
+        mismatched_intg::compute_mmintgs_on_yz_face(i,j,k,mmintgs_x,bcent,bnorm,flag);
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j,k,0)*(
+                    mmintgs_x[0][i_M_1]
+            - 2._rt*mmintgs_x[0][i_M_x]
+            - 2._rt*mmintgs_x[0][i_M_y]
+            + 4._rt*mmintgs_x[0][i_M_xy]);
 
-        {
-            GpuArray<Real, numMmIntgs> mmintg_x;
-            mismatched_intg::compute_mmintg_on_yz_face(i,j-1,k,mmintg_x,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i,j-1,k,0)*(
-                        mmintg_x[i_M_1]
-                + 2._rt*mmintg_x[i_M_x]
-                - 2._rt*mmintg_x[i_M_y]
-                - 4._rt*mmintg_x[i_M_xy]);
-        }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j-1,k,0)*(
+                    mmintgs_x[1][i_M_1]
+            + 2._rt*mmintgs_x[1][i_M_x]
+            - 2._rt*mmintgs_x[1][i_M_y]
+            - 4._rt*mmintgs_x[1][i_M_xy]);
 
-        {
-            GpuArray<Real, numMmIntgs> mmintg_x;
-            mismatched_intg::compute_mmintg_on_yz_face(i,j,k-1,mmintg_x,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i,j,k-1,0)*(
-                        mmintg_x[i_M_1]
-                - 2._rt*mmintg_x[i_M_x]
-                + 2._rt*mmintg_x[i_M_y]
-                - 4._rt*mmintg_x[i_M_xy]);
-        }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j,k-1,0)*(
+                    mmintgs_x[2][i_M_1]
+            - 2._rt*mmintgs_x[2][i_M_x]
+            + 2._rt*mmintgs_x[2][i_M_y]
+            - 4._rt*mmintgs_x[2][i_M_xy]);
 
-        {
-            GpuArray<Real, numMmIntgs> mmintg_x;
-            mismatched_intg::compute_mmintg_on_yz_face(i,j-1,k-1,mmintg_x,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i,j-1,k-1,0)*(
-                        mmintg_x[i_M_1]
-                + 2._rt*mmintg_x[i_M_x]
-                + 2._rt*mmintg_x[i_M_y]
-                + 4._rt*mmintg_x[i_M_xy]);
-        }
-
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j-1,k-1,0)*(
+                    mmintgs_x[3][i_M_1]
+            + 2._rt*mmintgs_x[3][i_M_x]
+            + 2._rt*mmintgs_x[3][i_M_y]
+            + 4._rt*mmintgs_x[3][i_M_xy]);
 
         // y faces
-        {
-            GpuArray<Real, numMmIntgs> mmintg_y;
-            mismatched_intg::compute_mmintg_on_xz_face(i,j,k,mmintg_y,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i,j,k,1)*(
-                        mmintg_y[i_M_1]
-                - 2._rt*mmintg_y[i_M_x]
-                - 2._rt*mmintg_y[i_M_y]
-                + 4._rt*mmintg_y[i_M_xy]);
-        }
+        GpuArray<GpuArray<Real, numMmIntgs>, 4> mmintgs_y;
+        mismatched_intg::compute_mmintgs_on_xz_face(i,j,k,mmintgs_y,bcent,bnorm,flag);
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j,k,1)*(
+                    mmintgs_y[0][i_M_1]
+            - 2._rt*mmintgs_y[0][i_M_x]
+            - 2._rt*mmintgs_y[0][i_M_y]
+            + 4._rt*mmintgs_y[0][i_M_xy]);
 
-        {
-            GpuArray<Real, numMmIntgs> mmintg_y;
-            mismatched_intg::compute_mmintg_on_xz_face(i-1,j,k,mmintg_y,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i-1,j,k,1)*(
-                        mmintg_y[i_M_1]
-                + 2._rt*mmintg_y[i_M_x]
-                - 2._rt*mmintg_y[i_M_y]
-                - 4._rt*mmintg_y[i_M_xy]);
-        }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i-1,j,k,1)*(
+                    mmintgs_y[1][i_M_1]
+            + 2._rt*mmintgs_y[1][i_M_x]
+            - 2._rt*mmintgs_y[1][i_M_y]
+            - 4._rt*mmintgs_y[1][i_M_xy]);
 
-        {
-            GpuArray<Real, numMmIntgs> mmintg_y;
-            mismatched_intg::compute_mmintg_on_xz_face(i,j,k-1,mmintg_y,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i,j,k-1,1)*(
-                        mmintg_y[i_M_1]
-                - 2._rt*mmintg_y[i_M_x]
-                + 2._rt*mmintg_y[i_M_y]
-                - 4._rt*mmintg_y[i_M_xy]);
-        }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j,k-1,1)*(
+                    mmintgs_y[2][i_M_1]
+            - 2._rt*mmintgs_y[2][i_M_x]
+            + 2._rt*mmintgs_y[2][i_M_y]
+            - 4._rt*mmintgs_y[2][i_M_xy]);
 
-        {
-            GpuArray<Real, numMmIntgs> mmintg_y;
-            mismatched_intg::compute_mmintg_on_xz_face(i-1,j,k-1,mmintg_y,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i-1,j,k-1,1)*(
-                        mmintg_y[i_M_1]
-                + 2._rt*mmintg_y[i_M_x]
-                + 2._rt*mmintg_y[i_M_y]
-                + 4._rt*mmintg_y[i_M_xy]);
-        }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i-1,j,k-1,1)*(
+                    mmintgs_y[3][i_M_1]
+            + 2._rt*mmintgs_y[3][i_M_x]
+            + 2._rt*mmintgs_y[3][i_M_y]
+            + 4._rt*mmintgs_y[3][i_M_xy]);
 
         // z faces
-        {
-            GpuArray<Real, numMmIntgs> mmintg_z;
-            mismatched_intg::compute_mmintg_on_xy_face(i,j,k,mmintg_z,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i,j,k,2)*(
-                        mmintg_z[i_M_1]
-                - 2._rt*mmintg_z[i_M_x]
-                - 2._rt*mmintg_z[i_M_y]
-                + 4._rt*mmintg_z[i_M_xy]);
-        }
+        GpuArray<GpuArray<Real, numMmIntgs>, 4> mmintgs_z;
+        mismatched_intg::compute_mmintgs_on_xy_face(i,j,k,mmintgs_z,bcent,bnorm,flag);
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j,k,2)*(
+                    mmintgs_z[0][i_M_1]
+            - 2._rt*mmintgs_z[0][i_M_x]
+            - 2._rt*mmintgs_z[0][i_M_y]
+            + 4._rt*mmintgs_z[0][i_M_xy]);
 
-        {
-            GpuArray<Real, numMmIntgs> mmintg_z;
-            mismatched_intg::compute_mmintg_on_xy_face(i-1,j,k,mmintg_z,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i-1,j,k,2)*(
-                        mmintg_z[i_M_1]
-                + 2._rt*mmintg_z[i_M_x]
-                - 2._rt*mmintg_z[i_M_y]
-                - 4._rt*mmintg_z[i_M_xy]);
-        }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i-1,j,k,2)*(
+                    mmintgs_z[1][i_M_1]
+            + 2._rt*mmintgs_z[1][i_M_x]
+            - 2._rt*mmintgs_z[1][i_M_y]
+            - 4._rt*mmintgs_z[1][i_M_xy]);
 
-        {
-            GpuArray<Real, numMmIntgs> mmintg_z;
-            mismatched_intg::compute_mmintg_on_xy_face(i,j-1,k,mmintg_z,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i,j-1,k,2)*(
-                        mmintg_z[i_M_1]
-                - 2._rt*mmintg_z[i_M_x]
-                + 2._rt*mmintg_z[i_M_y]
-                - 4._rt*mmintg_z[i_M_xy]);
-        }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i,j-1,k,2)*(
+                    mmintgs_z[2][i_M_1]
+            - 2._rt*mmintgs_z[2][i_M_x]
+            + 2._rt*mmintgs_z[2][i_M_y]
+            - 4._rt*mmintgs_z[2][i_M_xy]);
 
-        {
-            GpuArray<Real, numMmIntgs> mmintg_z;
-            mismatched_intg::compute_mmintg_on_xy_face(i-1,j-1,k,mmintg_z,bcent,bnorm,flag);
-            rhs(i,j,k) +=
-                 fac_eb*mm_ebvel(i-1,j-1,k,2)*(
-                        mmintg_z[i_M_1]
-                + 2._rt*mmintg_z[i_M_x]
-                + 2._rt*mmintg_z[i_M_y]
-                + 4._rt*mmintg_z[i_M_xy]);
-        }
+        rhs(i,j,k) +=
+             fac_eb*mm_ebvel(i-1,j-1,k,2)*(
+                    mmintgs_z[3][i_M_1]
+            + 2._rt*mmintgs_z[3][i_M_x]
+            + 2._rt*mmintgs_z[3][i_M_y]
+            + 4._rt*mmintgs_z[3][i_M_xy]);
     }
 }
 
