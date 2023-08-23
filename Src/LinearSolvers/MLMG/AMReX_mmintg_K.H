@@ -1597,7 +1597,7 @@ void compute_mmintgs_on_xz_face(int i, int j, int k,
             for (int n = 0; n < nt; ++n) {
                 add_to_mmintg(mmintg_y,triangles[n]);
             }
-	}
+        }
     }
 }
 
