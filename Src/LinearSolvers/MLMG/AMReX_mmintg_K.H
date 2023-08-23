@@ -1485,7 +1485,7 @@ void compute_mmintgs_on_xz_face(int i, int j, int k,
 {
     int idx = 0;
     for (int kk = k; kk >= k-1; --kk) {
-	    for (int ii = i; ii >= i-1; --ii) {
+        for (int ii = i; ii >= i-1; --ii) {
             auto& mmintg_y = mmintgs_y[idx++];
             mmintg_y[i_M_1]  = 0._rt;
             mmintg_y[i_M_x]  = 0._rt;
@@ -1613,7 +1613,7 @@ void compute_mmintgs_on_xy_face(int i, int j, int k,
 {
     int idx = 0;
     for (int jj = j; jj >= j-1; --jj) {
-	    for (int ii = i; ii >= i-1; --ii) {
+        for (int ii = i; ii >= i-1; --ii) {
             auto& mmintg_z = mmintgs_z[idx++];
             mmintg_z[i_M_1]  = 0._rt;
             mmintg_z[i_M_x]  = 0._rt;

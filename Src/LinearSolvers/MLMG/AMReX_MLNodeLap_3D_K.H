@@ -6876,17 +6876,29 @@ void correct_mismatched_vfrac (int i, int j, int k, Array4<Real> const& rhs, Arr
         // The nodal divergence operator should not see the tangential velocity
         //     at an inflow face
         if ((bclo[0] == LinOpBCType::Neumann || bclo[0] == LinOpBCType::inflow)
-            && i == domlo.x) zero_ilo = Real(0.0);
+            && i == domlo.x) {
+            zero_ilo = Real(0.0);
+        }
         if ((bchi[0] == LinOpBCType::Neumann || bchi[0] == LinOpBCType::inflow)
-            && i == domhi.x) zero_ihi = Real(0.0);
+            && i == domhi.x) {
+            zero_ihi = Real(0.0);
+        }
         if ((bclo[1] == LinOpBCType::Neumann || bclo[1] == LinOpBCType::inflow)
-            && j == domlo.y) zero_jlo = Real(0.0);
+            && j == domlo.y) {
+            zero_jlo = Real(0.0);
+        }
         if ((bchi[1] == LinOpBCType::Neumann || bchi[1] == LinOpBCType::inflow)
-            && j == domhi.y) zero_jhi = Real(0.0);
+            && j == domhi.y) {
+            zero_jhi = Real(0.0);
+        }
         if ((bclo[2] == LinOpBCType::Neumann || bclo[2] == LinOpBCType::inflow)
-            && k == domlo.z) zero_klo = Real(0.0);
+            && k == domlo.z) {
+            zero_klo = Real(0.0);
+        }
         if ((bchi[2] == LinOpBCType::Neumann || bchi[2] == LinOpBCType::inflow)
-            && k == domhi.z) zero_khi = Real(0.0);
+            && k == domhi.z) {
+            zero_khi = Real(0.0);
+        }
 
         rhs(i,j,k) += facx*(
             vel(i-1,j-1,k  ,0)*(   -intg(i-1,j-1,k  ,i_S_1)
