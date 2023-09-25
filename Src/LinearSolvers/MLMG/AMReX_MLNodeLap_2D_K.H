@@ -2302,26 +2302,79 @@ void mlndlap_set_surface_integral_eb (int i, int j, int, Array4<Real> const& sin
             amrex::Abort("amrex_mlndlap_set_surface_integral: we are in trouble");
         }
 
+        Real apnorminv = Real(1.)/apnorm;
+        Real anrmx = (axm-axp) * apnorminv;  // pointing to the wall
+        Real anrmy = (aym-ayp) * apnorminv;
+
+        // Special handling cases for cut cells with vfrac=1
         if (vol(i,j,0) >= almostone) {
-            sintg(i,j,0,i_B_x ) = Real(0.);
-            sintg(i,j,0,i_B_y ) = Real(0.);
-            sintg(i,j,0,i_B_xy) = Real(0.);
-            if (axm < Real(1.)) {
-                sintg(i,j,0,i_B_x) = Real(-0.5)*barea(i,j,0);
-            } else if (aym < Real(1.)) {
-                sintg(i,j,0,i_B_y) = Real(-0.5)*barea(i,j,0);
-            } else if (axp < Real(1.)) {
-                sintg(i,j,0,i_B_x) = Real( 0.5)*barea(i,j,0);
-            } else if (ayp < Real(1.)) {
-                sintg(i,j,0,i_B_y) = Real( 0.5)*barea(i,j,0);
-            } else {
-                amrex::Abort("amrex_mlndlap_set_surface_integral: we are in trouble");
+            // small regions fully ignored
+            if (barea(i,j,0) <= Real(10.)*almostzero) {
+                sintg(i,j,0,i_B_x ) = Real(0.);
+                sintg(i,j,0,i_B_y ) = Real(0.);
+                sintg(i,j,0,i_B_xy) = Real(0.);
+            // truncated with grid boundary
+            // (how do these happen??)
+            // second order terms ignored
+            } else if (barea(i,j,0)*barea(i,j,0) <= Real(10.)*almostzero) {
+                if (axm < Real(1.) && std::abs(anrmy) <= almostzero) {
+                    sintg(i,j,0,i_B_x) = Real(-0.5)*barea(i,j,0);
+                    if (ay(i-1,j,0) <= almostzero) {
+                        sintg(i,j,0,i_B_y)  = Real(-0.5)*barea(i,j,0);
+                        sintg(i,j,0,i_B_xy) = Real(-0.5)*Real(-0.5)*barea(i,j,0);
+                    } else {
+                        sintg(i,j,0,i_B_y)  = Real(0.5)*barea(i,j,0);
+                        sintg(i,j,0,i_B_xy) = Real(-0.5)*Real(0.5)*barea(i,j,0);
+                    }
+                } else if (aym < Real(1.) && std::abs(anrmx) <= almostzero) {
+                    sintg(i,j,0,i_B_y) = Real(-0.5)*barea(i,j,0);
+                    if (ax(i,j-1,0) <= almostzero) {
+                        sintg(i,j,0,i_B_x)  = Real(-0.5)*barea(i,j,0);
+                        sintg(i,j,0,i_B_xy) = Real(-0.5)*Real(-0.5)*barea(i,j,0);
+                    } else {
+                        sintg(i,j,0,i_B_x)  = Real(0.5)*barea(i,j,0);
+                        sintg(i,j,0,i_B_xy) = Real(0.5)*Real(-0.5)*barea(i,j,0);
+                    }
+                } else if (axp < Real(1.) && std::abs(anrmy) <= almostzero) {
+                    sintg(i,j,0,i_B_x) = Real(0.5)*barea(i,j,0);
+                    if (ay(i+1,j,0) <= almostzero) {
+                        sintg(i,j,0,i_B_y)  = Real(-0.5)*barea(i,j,0);
+                        sintg(i,j,0,i_B_xy) = Real(0.5)*Real(-0.5)*barea(i,j,0);
+                    } else {
+                        sintg(i,j,0,i_B_y)  = Real(0.5)*barea(i,j,0);
+                        sintg(i,j,0,i_B_xy) = Real(0.5)*Real(0.5)*barea(i,j,0);
+                    }
+                } else if (ayp < Real(1.) && std::abs(anrmx) <= almostzero) {
+                    sintg(i,j,0,i_B_y) = Real(0.5)*barea(i,j,0);
+                    if (ax(i,j+1,0) <= almostzero) {
+                        sintg(i,j,0,i_B_x)  = Real(-0.5)*barea(i,j,0);
+                        sintg(i,j,0,i_B_xy) = Real(-0.5)*Real(0.5)*barea(i,j,0);
+                    } else {
+                        sintg(i,j,0,i_B_x)  = Real(0.5)*barea(i,j,0);
+                        sintg(i,j,0,i_B_xy) = Real(0.5)*Real(0.5)*barea(i,j,0);
+                    }
+                } else {
+                    amrex::Abort("amrex_mlndlap_set_surface_integral: we are in trouble");
+                }
+            }
+            // coincident with grid boundary
+            else {
+                sintg(i,j,0,i_B_x ) = Real(0.);
+                sintg(i,j,0,i_B_y ) = Real(0.);
+                sintg(i,j,0,i_B_xy) = Real(0.);
+                if (axm < Real(1.)) {
+                    sintg(i,j,0,i_B_x) = Real(-0.5)*barea(i,j,0);
+                } else if (aym < Real(1.)) {
+                    sintg(i,j,0,i_B_y) = Real(-0.5)*barea(i,j,0);
+                } else if (axp < Real(1.)) {
+                    sintg(i,j,0,i_B_x) = Real( 0.5)*barea(i,j,0);
+                } else if (ayp < Real(1.)) {
+                    sintg(i,j,0,i_B_y) = Real( 0.5)*barea(i,j,0);
+                } else {
+                    amrex::Abort("amrex_mlndlap_set_surface_integral: we are in trouble");
+                }
             }
         } else {
-            Real apnorminv = Real(1.)/apnorm;
-            Real anrmx = (axm-axp) * apnorminv;  // pointing to the wall
-            Real anrmy = (aym-ayp) * apnorminv;
-
             Real bcx = bcen(i,j,0,0);
             Real bcy = bcen(i,j,0,1);
 
