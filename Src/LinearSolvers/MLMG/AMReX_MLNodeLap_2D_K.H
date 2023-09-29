@@ -2298,11 +2298,11 @@ void mlndlap_set_surface_integral_eb (int i, int j, int, Array4<Real> const& sin
         Real anrmx = bnorm(i,j,0,0);
         Real anrmy = bnorm(i,j,0,1);
 
-        Real x0 =  bcx - Real(0.5)*barea(i,j,0)*anrmx;
-        Real x1 =  bcx + Real(0.5)*barea(i,j,0)*anrmx;
+        Real x0 =  bcx - Real(0.5)*barea(i,j,0)*anrmy;
+        Real x1 =  bcx + Real(0.5)*barea(i,j,0)*anrmy;
 
-        Real y0 =  bcy + Real(0.5)*barea(i,j,0)*anrmy;
-        Real y1 =  bcy - Real(0.5)*barea(i,j,0)*anrmy;
+        Real y0 =  bcy + Real(0.5)*barea(i,j,0)*anrmx;
+        Real y1 =  bcy - Real(0.5)*barea(i,j,0)*anrmx;
 
         Real Bx  = barea(i,j,0)*Real(0.5)*(x1 + x0);
         Real By  = barea(i,j,0)*Real(0.5)*(y1 + y0);
