@@ -11,6 +11,7 @@
 #include <AMReX_RealVect.H>
 
 #include <array>
+#include <type_traits>
 
 namespace amrex {
 
@@ -30,6 +31,7 @@ struct ParticleTileData
     static constexpr int NAI = NArrayInt;
 
     using ParticleType = T_ParticleType;
+    using ParticleRefType = T_ParticleType&;
     using Self = ParticleTileData<ParticleType, NAR, NAI>;
 
     static constexpr int NStructReal = ParticleType::NReal;
@@ -41,7 +43,9 @@ struct ParticleTileData
 
     Long m_size;
 
-    ParticleType* AMREX_RESTRICT m_aos;
+    using AOS_PTR = std::conditional_t<T_ParticleType::is_soa_particle,
+                                       void * AMREX_RESTRICT, ParticleType * AMREX_RESTRICT>;
+    AOS_PTR m_aos;
 
     uint64_t* m_idcpu;
     GpuArray<ParticleReal*, NAR> m_rdata;
@@ -489,6 +493,7 @@ struct ConstParticleTileData
     static constexpr int NAR = NArrayReal;
     static constexpr int NAI = NArrayInt;
     using ParticleType = T_ParticleType;
+    using ParticleRefType = T_ParticleType const&;
 
     static constexpr int NStructReal = ParticleType::NReal;
     static constexpr int NStructInt = ParticleType::NInt;
@@ -498,7 +503,10 @@ struct ConstParticleTileData
     static constexpr bool is_particle_tile_data = true;
 
     Long m_size;
-    const ParticleType* AMREX_RESTRICT m_aos;
+
+    using AOS_PTR = std::conditional_t<T_ParticleType::is_soa_particle,
+                                       void const * AMREX_RESTRICT, ParticleType const * AMREX_RESTRICT>;
+    AOS_PTR m_aos;
 
     const uint64_t* m_idcpu;
     GpuArray<const ParticleReal*, NArrayReal> m_rdata;
@@ -1101,35 +1109,41 @@ struct ParticleTile
 
     ParticleTileDataType getParticleTileData ()
     {
-        int index = NArrayReal;
+        m_runtime_r_ptrs.resize(m_soa_tile.NumRealComps() - NArrayReal);
+        m_runtime_i_ptrs.resize(m_soa_tile.NumIntComps() - NArrayInt);
 #ifdef AMREX_USE_GPU
-        Gpu::HostVector<ParticleReal*> h_runtime_r_ptrs(m_runtime_r_ptrs.size());
-        for (auto& r_ptr : h_runtime_r_ptrs) {
-            r_ptr = m_soa_tile.GetRealData(index++).dataPtr();
+        bool copy_real = false;
+        m_h_runtime_r_ptrs.resize(m_soa_tile.NumRealComps() - NArrayReal, nullptr);
+        for (std::size_t i = 0; i < m_h_runtime_r_ptrs.size(); ++i) {
+            if (m_h_runtime_r_ptrs[i] != m_soa_tile.GetRealData(i + NArrayReal).dataPtr()) {
+                m_h_runtime_r_ptrs[i] = m_soa_tile.GetRealData(i + NArrayReal).dataPtr();
+                copy_real = true;
+            }
         }
-        if (h_runtime_r_ptrs.size() > 0) {
-            Gpu::htod_memcpy_async(m_runtime_r_ptrs.data(), h_runtime_r_ptrs.data(),
-                                   h_runtime_r_ptrs.size()*sizeof(ParticleReal*));
+        if (copy_real) {
+            Gpu::htod_memcpy_async(m_runtime_r_ptrs.data(), m_h_runtime_r_ptrs.data(),
+                                   m_h_runtime_r_ptrs.size()*sizeof(ParticleReal*));
         }
-#else
-        for (auto& r_ptr : m_runtime_r_ptrs) {
-            r_ptr = m_soa_tile.GetRealData(index++).dataPtr();
-        }
-#endif
 
-        index = NArrayInt;
-#ifdef AMREX_USE_GPU
-        Gpu::HostVector<int*> h_runtime_i_ptrs(m_runtime_i_ptrs.size());
-        for (auto& i_ptr : h_runtime_i_ptrs) {
-            i_ptr = m_soa_tile.GetIntData(index++).dataPtr();
+        bool copy_int = false;
+        m_h_runtime_i_ptrs.resize(m_soa_tile.NumIntComps() - NArrayInt, nullptr);
+        for (std::size_t i = 0; i < m_h_runtime_i_ptrs.size(); ++i) {
+            if (m_h_runtime_i_ptrs[i] != m_soa_tile.GetIntData(i + NArrayInt).dataPtr()) {
+                m_h_runtime_i_ptrs[i] = m_soa_tile.GetIntData(i + NArrayInt).dataPtr();
+                copy_int = true;
+            }
         }
-        if (h_runtime_i_ptrs.size() > 0) {
-            Gpu::htod_memcpy_async(m_runtime_i_ptrs.data(), h_runtime_i_ptrs.data(),
-                                   h_runtime_i_ptrs.size()*sizeof(int*));
+        if (copy_int) {
+            Gpu::htod_memcpy_async(m_runtime_i_ptrs.data(), m_h_runtime_i_ptrs.data(),
+                                   m_h_runtime_i_ptrs.size()*sizeof(int*));
         }
 #else
-        for (auto& i_ptr : m_runtime_i_ptrs) {
-            i_ptr = m_soa_tile.GetIntData(index++).dataPtr();
+        for (std::size_t i = 0; i < m_runtime_r_ptrs.size(); ++i) {
+            m_runtime_r_ptrs[i] = m_soa_tile.GetRealData(i + NArrayReal).dataPtr();
+        }
+
+        for (std::size_t i = 0; i < m_runtime_i_ptrs.size(); ++i) {
+            m_runtime_i_ptrs[i] = m_soa_tile.GetIntData(i + NArrayInt).dataPtr();
         }
 #endif
 
@@ -1161,7 +1175,7 @@ struct ParticleTile
         ptd.m_runtime_idata = m_runtime_i_ptrs.dataPtr();
 
 #ifdef AMREX_USE_GPU
-        if ((h_runtime_r_ptrs.size() > 0) || (h_runtime_i_ptrs.size() > 0)) {
+        if (copy_real || copy_int) {
             Gpu::streamSynchronize();
         }
 #endif
@@ -1171,35 +1185,41 @@ struct ParticleTile
 
     ConstParticleTileDataType getConstParticleTileData () const
     {
-        int index = NArrayReal;
+        m_runtime_r_cptrs.resize(m_soa_tile.NumRealComps() - NArrayReal);
+        m_runtime_i_cptrs.resize(m_soa_tile.NumIntComps() - NArrayInt);
 #ifdef AMREX_USE_GPU
-        Gpu::HostVector<ParticleReal const*> h_runtime_r_cptrs(m_runtime_r_cptrs.size());
-        for (auto& r_ptr : h_runtime_r_cptrs) {
-            r_ptr = m_soa_tile.GetRealData(index++).dataPtr();
+        bool copy_real = false;
+        m_h_runtime_r_cptrs.resize(m_soa_tile.NumRealComps() - NArrayReal, nullptr);
+        for (std::size_t i = 0; i < m_h_runtime_r_cptrs.size(); ++i) {
+            if (m_h_runtime_r_cptrs[i] != m_soa_tile.GetRealData(i + NArrayReal).dataPtr()) {
+                m_h_runtime_r_cptrs[i] = m_soa_tile.GetRealData(i + NArrayReal).dataPtr();
+                copy_real = true;
+            }
         }
-        if (h_runtime_r_cptrs.size() > 0) {
-            Gpu::htod_memcpy_async(m_runtime_r_cptrs.data(), h_runtime_r_cptrs.data(),
-                                   h_runtime_r_cptrs.size()*sizeof(ParticleReal const*));
+        if (copy_real) {
+            Gpu::htod_memcpy_async(m_runtime_r_cptrs.data(), m_h_runtime_r_cptrs.data(),
+                                   m_h_runtime_r_cptrs.size()*sizeof(ParticleReal*));
         }
-#else
-        for (auto& r_ptr : m_runtime_r_cptrs) {
-            r_ptr = m_soa_tile.GetRealData(index++).dataPtr();
-        }
-#endif
 
-        index = NArrayInt;
-#ifdef AMREX_USE_GPU
-        Gpu::HostVector<int const*> h_runtime_i_cptrs(m_runtime_i_cptrs.size());
-        for (auto& i_ptr : h_runtime_i_cptrs) {
-            i_ptr = m_soa_tile.GetIntData(index++).dataPtr();
+        bool copy_int = false;
+        m_h_runtime_i_cptrs.resize(m_soa_tile.NumIntComps() - NArrayInt, nullptr);
+        for (std::size_t i = 0; i < m_h_runtime_i_cptrs.size(); ++i) {
+            if (m_h_runtime_i_cptrs[i] != m_soa_tile.GetIntData(i + NArrayInt).dataPtr()) {
+                m_h_runtime_i_cptrs[i] = m_soa_tile.GetIntData(i + NArrayInt).dataPtr();
+                copy_int = true;
+            }
         }
-        if (h_runtime_i_cptrs.size() > 0) {
-            Gpu::htod_memcpy_async(m_runtime_i_cptrs.data(), h_runtime_i_cptrs.data(),
-                                   h_runtime_i_cptrs.size()*sizeof(int const*));
+        if (copy_int) {
+            Gpu::htod_memcpy_async(m_runtime_i_cptrs.data(), m_h_runtime_i_cptrs.data(),
+                                   m_h_runtime_i_cptrs.size()*sizeof(int*));
         }
 #else
-        for (auto& i_ptr : m_runtime_i_cptrs) {
-            i_ptr = m_soa_tile.GetIntData(index++).dataPtr();
+        for (std::size_t i = 0; i < m_runtime_r_cptrs.size(); ++i) {
+            m_runtime_r_cptrs[i] = m_soa_tile.GetRealData(i + NArrayReal).dataPtr();
+        }
+
+        for (std::size_t i = 0; i < m_runtime_i_cptrs.size(); ++i) {
+            m_runtime_i_cptrs[i] = m_soa_tile.GetIntData(i + NArrayInt).dataPtr();
         }
 #endif
 
@@ -1231,7 +1251,7 @@ struct ParticleTile
         ptd.m_runtime_idata = m_runtime_i_cptrs.dataPtr();
 
 #ifdef AMREX_USE_GPU
-        if ((h_runtime_r_cptrs.size() > 0) || (h_runtime_i_cptrs.size() > 0)) {
+        if (copy_real || copy_int) {
             Gpu::streamSynchronize();
         }
 #endif
@@ -1251,6 +1271,12 @@ private:
 
     mutable amrex::PODVector<const ParticleReal*, Allocator<const ParticleReal*> > m_runtime_r_cptrs;
     mutable amrex::PODVector<const int*, Allocator<const int*> >m_runtime_i_cptrs;
+
+    amrex::Gpu::HostVector<ParticleReal*> m_h_runtime_r_ptrs;
+    amrex::Gpu::HostVector<int*> m_h_runtime_i_ptrs;
+
+    mutable amrex::Gpu::HostVector<const ParticleReal*> m_h_runtime_r_cptrs;
+    mutable amrex::Gpu::HostVector<const int*> m_h_runtime_i_cptrs;
 };
 
 } // namespace amrex
