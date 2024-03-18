@@ -217,8 +217,8 @@ Copier::Copier (BoxArray const& ba, DistributionMapping const& dm)
     // MPI_COMM_WORLD.
 
     // Build communication meta-data
-
-    AMREX_ALWAYS_ASSERT(ba.ixType().cellCentered());
+    AMREX_ALWAYS_ASSERT(ba.ixType() == oba.ixType());
+    m_is_thread_safe = ba.ixType().cellCentered();
 
     std::vector<std::pair<int,Box> > isects;
 
@@ -229,10 +229,8 @@ Copier::Copier (BoxArray const& ba, DistributionMapping const& dm)
                 const int oi = isec.first;
                 const Box& bx = isec.second;
                 const int orank = oprocs[oi];
-                m_SndTags[orank].push_back
-                    (FabArrayBase::CopyComTag(bx, bx, oi, i));
-                m_RcvTags[orank].push_back
-                    (FabArrayBase::CopyComTag(bx, bx, i, oi));
+                m_SndTags[orank].emplace_back(bx, bx, oi, i);
+                m_RcvTags[orank].emplace_back(bx, bx, i, oi);
             }
         }
     }
