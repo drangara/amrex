@@ -294,8 +294,8 @@ struct GetSendBufferOffset
 
 template <class PC, class Buffer,
           std::enable_if_t<IsParticleContainer<PC>::value &&
-                           std::is_base_of<PolymorphicArenaAllocator<typename Buffer::value_type>,
-                                           Buffer>::value, int> foo = 0>
+                           std::is_base_of_v<PolymorphicArenaAllocator<typename Buffer::value_type>,
+                                           Buffer>, int> foo = 0>
 void packBuffer (const PC& pc, const ParticleCopyOp& op, const ParticleCopyPlan& plan,
                  Buffer& snd_buffer)
 {
@@ -395,7 +395,7 @@ void packBuffer (const PC& pc, const ParticleCopyOp& op, const ParticleCopyPlan&
 
 template <class PC, class Buffer, class UnpackPolicy,
           std::enable_if_t<IsParticleContainer<PC>::value, int> foo = 0>
-void unpackBuffer (PC& pc, const ParticleCopyPlan& plan, const Buffer& snd_buffer, const UnpackPolicy&& policy)
+void unpackBuffer (PC& pc, const ParticleCopyPlan& plan, const Buffer& snd_buffer, UnpackPolicy const& policy)
 {
     BL_PROFILE("amrex::unpackBuffer");
 
@@ -555,7 +555,7 @@ void communicateParticlesFinish (const ParticleCopyPlan& plan);
 
 template <class PC, class Buffer, class UnpackPolicy,
           std::enable_if_t<IsParticleContainer<PC>::value, int> foo = 0>
-void unpackRemotes (PC& pc, const ParticleCopyPlan& plan, Buffer& rcv_buffer, UnpackPolicy&& policy)
+void unpackRemotes (PC& pc, const ParticleCopyPlan& plan, Buffer& rcv_buffer, UnpackPolicy const& policy)
 {
     BL_PROFILE("amrex::unpackRemotes");
 

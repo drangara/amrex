@@ -377,6 +377,9 @@ endif ()
 
 print_option( AMReX_ASSERTIONS )
 
+option( AMReX_FLATTEN_FOR "Enable flattening of ParallelFor and other similar functions" OFF)
+print_option( AMReX_FLATTEN_FOR )
+
 option(AMReX_BOUND_CHECK  "Enable bound checking in Array4 class" OFF)
 print_option( AMReX_BOUND_CHECK )
 

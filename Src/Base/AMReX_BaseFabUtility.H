@@ -22,11 +22,11 @@ cast (BaseFab<Tto>& tofab, BaseFab<Tfrom> const& fromfab,
 }
 
 template <typename STRUCT, typename F,
-          typename std::enable_if<(sizeof(STRUCT)<=36*8) &&
+          std::enable_if_t<(sizeof(STRUCT)<=36*8) &&
                                   AMREX_IS_TRIVIALLY_COPYABLE(STRUCT) &&
-                                  std::is_trivially_destructible<STRUCT>::value,
-                                  int>::type FOO = 0>
-void fill (BaseFab<STRUCT>& aos_fab, F && f)
+                                  std::is_trivially_destructible_v<STRUCT>,
+                                  int>FOO = 0>
+void fill (BaseFab<STRUCT>& aos_fab, F const& f)
 {
     Box const& box = aos_fab.box();
     auto const& aos = aos_fab.array();
@@ -88,7 +88,7 @@ void fill (BaseFab<STRUCT>& aos_fab, F && f)
     } else
 #endif
     {
-        amrex::LoopOnCpu(box, [=] (int i, int j, int k) noexcept
+        amrex::LoopOnCpu(box, [&] (int i, int j, int k) noexcept
         {
             f(aos(i,j,k), i, j, k);
         });
