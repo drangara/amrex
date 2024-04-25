@@ -53,6 +53,20 @@ namespace {
 }
 #endif
 
+#ifdef AMREX_USE_HIP
+namespace {
+    __host__ __device__ void amrex_check_wavefront_size () {
+#ifdef __HIP_DEVICE_COMPILE__
+        // https://github.com/AMReX-Codes/amrex/issues/3792
+        // __AMDGCN_WAVEFRONT_SIZE is valid in device code only.
+        // Thus we have to check it this way.
+        static_assert(__AMDGCN_WAVEFRONT_SIZE == AMREX_AMDGCN_WAVEFRONT_SIZE,
+                      "Please let the amrex team know if you encounter this");
+#endif
+    }
+}
+#endif
+
 namespace amrex::Gpu {
 
 int Device::device_id = 0;
@@ -306,6 +320,14 @@ Device::Initialize ()
 
 #if defined(AMREX_USE_CUDA) && (defined(AMREX_PROFILING) || defined(AMREX_TINY_PROFILING))
     nvtxRangePop();
+#endif
+
+#if defined(AMREX_USE_HIP)
+    if (num_devices_used < 0) {
+        // This test is always false, but it makes the compiler no longer
+        // complain about unused function, amrex_check_wavefront_size.
+        amrex::single_task(amrex_check_wavefront_size);
+    }
 #endif
 
     Device::profilerStart();

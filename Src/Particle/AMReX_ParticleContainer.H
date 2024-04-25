@@ -369,7 +369,18 @@ public:
         return (lev < m_particles.size()) ? m_particles[lev].size() : 0;
     }
 
+    /**
+     * \brief This reserves data in the vector of dummy MultiFabs used by
+     * the ParticleContainer for the maximum number of levels possible.
+     */
     void reserveData () override;
+
+    /**
+     * \brief This resizes the vector of dummy MultiFabs used by the
+     * ParticleContainer for the current number of levels and calls
+     * RedefineDummyMF on each level. Note that this must be done prior
+     * to using ParticleIterator.
+     */
     void resizeData () override;
 
     void InitFromAsciiFile (const std::string& file, int extradata,
@@ -819,7 +830,7 @@ public:
      * \param name The name of the sub-directory for this particle type (i.e. "Tracer")
      * \param f callable that returns whether or not to write each particle
      */
-    template <class F, std::enable_if_t<!std::is_same_v<F, Vector<std::string>&>>* = nullptr>
+    template <class F, std::enable_if_t<!std::is_same_v<std::decay_t<F>, Vector<std::string>>>* = nullptr>
     void WritePlotFile (const std::string& dir, const std::string& name, F&& f) const;
 
     /**
@@ -876,7 +887,7 @@ public:
      * \param real_comp_names for each real component, a name to label the data with
      * \param f callable that returns whether or not to write each particle
      */
-    template <class F, std::enable_if_t<!std::is_same_v<F, Vector<std::string>>>* = nullptr>
+    template <class F, std::enable_if_t<!std::is_same_v<std::decay_t<F>, Vector<std::string>>>* = nullptr>
     void WritePlotFile (const std::string& dir, const std::string& name,
                         const Vector<std::string>& real_comp_names, F&& f) const;
 
