@@ -6875,6 +6875,8 @@ void correct_mismatched_vfrac (int i, int j, int k, Array4<Real> const& rhs, Arr
                                GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bclo,
                                GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi) noexcept
 {
+    using namespace nodelap_detail;
+
     Real facx = Real(0.25)*dxinv[0];
     Real facy = Real(0.25)*dxinv[1];
     Real facz = Real(0.25)*dxinv[2];
@@ -7059,6 +7061,8 @@ void correct_mismatched_barea (int i, int j, int k, Array4<Real> const& rhs,
                                Array4<Real const> const& sintg,
                                Array4<Real const> const& eb_vel_dot_n) noexcept
 {
+    using namespace nodelap_detail;
+
     Real fac_eb = Real(0.125) * dxinv[0];
 
     if (!msk(i,j,k)) {
@@ -7099,6 +7103,8 @@ void add_eb_flow_contrib_from_mismatched_faces (int i, int j, int k, Array4<Real
                       GpuArray<LinOpBCType, AMREX_SPACEDIM> const& bchi,
                       Array4<Real const> const& eb_vel_dot_n) noexcept
 {
+    using namespace nodelap_detail;
+
     correct_mismatched_vfrac(i,j,k,rhs,vel,vfrac,intg,msk,dxinv,nodal_domain,bclo,bchi);
     correct_mismatched_barea(i,j,k,rhs,msk,dxinv,bareaarr,sintg,eb_vel_dot_n);
 
