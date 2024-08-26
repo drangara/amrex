@@ -12,6 +12,7 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include <unordered_map>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -625,7 +626,8 @@ bldTable (const char*& str, ParmParse::Table& tab)
 
 template <typename T>
 bool pp_parser (const ParmParse::Table& table, const std::string& parser_prefix,
-                const std::string& name, const std::string& val, T& ref);
+                const std::string& name, const std::string& val, T& ref,
+                bool use_querywithparser);
 
 template <class T>
 bool
@@ -672,10 +674,13 @@ squeryval (const ParmParse::Table& table,
                       std::is_same_v<T,long> ||
                       std::is_same_v<T,long long> ||
                       std::is_same_v<T,float> ||
-                      std::is_same_v<T,double>) {
-            if (pp_parser(table, parser_prefix, name, valname, ref)) {
+                      std::is_same_v<T,double>)
+        {
+            if (pp_parser(table, parser_prefix, name, valname, ref, false)) {
                 return true;
             }
+        } else {
+            amrex::ignore_unused(parser_prefix);
         }
 
         amrex::ErrorStream() << "ParmParse::queryval type mismatch on value number "
@@ -785,10 +790,13 @@ squeryarr (const ParmParse::Table& table,
                           std::is_same_v<T,long> ||
                           std::is_same_v<T,long long> ||
                           std::is_same_v<T,float> ||
-                          std::is_same_v<T,double>) {
-                if (pp_parser(table, parser_prefix, name, valname, ref[n])) {
+                          std::is_same_v<T,double>)
+            {
+                if (pp_parser(table, parser_prefix, name, valname, ref[n], false)) {
                     continue;
                 }
+            } else {
+                amrex::ignore_unused(parser_prefix);
             }
 
             amrex::ErrorStream() << "ParmParse::queryarr type mismatch on value number "
@@ -938,11 +946,18 @@ void pp_print_unused (const std::string& pfx, const ParmParse::Table& table)
     }
 }
 
+template <class T>
+bool squeryWithParser (const ParmParse::Table& table,
+                       const std::string&      parser_prefix,
+                       const std::string&      name,
+                       T&                      ref);
+
 template <typename T, typename PARSER_t = std::conditional_t<std::is_integral_v<T>,
                                                              IParser, Parser>>
 PARSER_t
 pp_make_parser (std::string const& func, Vector<std::string> const& vars,
-                ParmParse::Table const& table, std::string const& parser_prefix)
+                ParmParse::Table const& table, std::string const& parser_prefix,
+                bool use_querywithparser)
 {
     using value_t =  std::conditional_t<std::is_integral_v<T>, long long, double>;
 
@@ -967,8 +982,12 @@ pp_make_parser (std::string const& func, Vector<std::string> const& vars,
         value_t v = 0;
         bool r = false;
         for (auto const& pf : prefixes) {
-            r = squeryval(table, parser_prefix, pf+s, v,
-                          ParmParse::FIRST, ParmParse::LAST);
+            if (use_querywithparser) {
+                r = squeryWithParser(table, parser_prefix, pf+s, v);
+            } else {
+                r = squeryval(table, parser_prefix, pf+s, v,
+                              ParmParse::FIRST, ParmParse::LAST);
+            }
             if (r) { break; }
         }
         if (r == false) {
@@ -985,7 +1004,8 @@ pp_make_parser (std::string const& func, Vector<std::string> const& vars,
 
 template <typename T>
 bool pp_parser (const ParmParse::Table& table, const std::string& parser_prefix,
-                const std::string& name, const std::string& val, T& ref)
+                const std::string& name, const std::string& val, T& ref,
+                bool use_querywithparser)
 {
     auto& recursive_symbols = g_parser_recursive_symbols[OpenMP::get_thread_num()];
     if (auto found = recursive_symbols.find(name); found != recursive_symbols.end()) {
@@ -995,7 +1015,7 @@ bool pp_parser (const ParmParse::Table& table, const std::string& parser_prefix,
         recursive_symbols.insert(name);
     }
 
-    auto parser = pp_make_parser<T>(val, {}, table, parser_prefix);
+    auto parser = pp_make_parser<T>(val, {}, table, parser_prefix, use_querywithparser);
     auto exe = parser.template compileHost<0>();
     ref = static_cast<T>(exe());
 
@@ -1185,6 +1205,32 @@ ParmParse::dumpTable (std::ostream& os, bool prettyPrint)
         else {
             for (auto const& vals : entry.m_vals) {
                 os << pp_to_string(name, vals) << '\n';
+            }
+        }
+    }
+}
+
+void
+ParmParse::prettyPrintTable (std::ostream& os)
+{
+    std::vector<std::string> sorted_names;
+    sorted_names.reserve(g_table.size());
+    for (auto const& [name, entry] : g_table) {
+        sorted_names.push_back(name);
+    }
+    std::sort(sorted_names.begin(), sorted_names.end());
+
+    for (auto const& name : sorted_names) {
+        auto const& entry = g_table[name];
+        std::vector<std::string> value_string;
+        std::unordered_map<std::string,int> count;
+        for (auto const& vals : entry.m_vals) {
+            value_string.emplace_back(pp_to_pretty_string(name, vals));
+            ++count[value_string.back()];
+        }
+        for (auto const& s : value_string) {
+            if (--count[s] == 0) {
+                os << s << '\n';
             }
         }
     }
@@ -1854,7 +1900,7 @@ int
 ParmParse::remove (const char* name)
 {
     auto const pname = prefixedName(name);
-    auto n = m_table->erase(name);
+    auto n = m_table->erase(pname);
     return static_cast<int>(n);
 }
 
@@ -1874,7 +1920,27 @@ bool squeryWithParser (const ParmParse::Table& table,
     for (auto const& v : vals) {
         combined_string.append(v);
     }
-    return pp_parser(table, parser_prefix, name, combined_string, ref);
+    return pp_parser(table, parser_prefix, name, combined_string, ref, true);
+}
+
+template <class T>
+bool squeryarrWithParser (const ParmParse::Table& table,
+                          const std::string&      parser_prefix,
+                          const std::string&      name,
+                          int                     nvals,
+                          T*                      ref)
+{
+    std::vector<std::string> vals;
+    bool exist = squeryarr(table, parser_prefix, name, vals,
+                           ParmParse::FIRST, ParmParse::ALL, ParmParse::LAST);
+    if (!exist) { return false; }
+
+    AMREX_ALWAYS_ASSERT(int(vals.size()) == nvals);
+    for (int ival = 0; ival < nvals; ++ival) {
+        bool r = pp_parser(table, parser_prefix, name, vals[ival], ref[ival], true);
+        if (!r) { return false; }
+    }
+    return true;
 }
 }
 
@@ -1908,18 +1974,48 @@ ParmParse::queryWithParser (const char* name, double& ref) const
     return squeryWithParser(*m_table,m_parser_prefix,prefixedName(name),ref);
 }
 
+int
+ParmParse::queryarrWithParser (const char* name, int nvals, int* ref) const
+{
+    return squeryarrWithParser(*m_table,m_parser_prefix,prefixedName(name),nvals,ref);
+}
+
+int
+ParmParse::queryarrWithParser (const char* name, int nvals, long* ref) const
+{
+    return squeryarrWithParser(*m_table,m_parser_prefix,prefixedName(name),nvals,ref);
+}
+
+int
+ParmParse::queryarrWithParser (const char* name, int nvals, long long* ref) const
+{
+    return squeryarrWithParser(*m_table,m_parser_prefix,prefixedName(name),nvals,ref);
+}
+
+int
+ParmParse::queryarrWithParser (const char* name, int nvals, float* ref) const
+{
+    return squeryarrWithParser(*m_table,m_parser_prefix,prefixedName(name),nvals,ref);
+}
+
+int
+ParmParse::queryarrWithParser (const char* name, int nvals, double* ref) const
+{
+    return squeryarrWithParser(*m_table,m_parser_prefix,prefixedName(name),nvals,ref);
+}
+
 Parser
 ParmParse::makeParser (std::string const& func,
                        Vector<std::string> const& vars) const
 {
-    return pp_make_parser<double>(func, vars, *m_table, m_parser_prefix);
+    return pp_make_parser<double>(func, vars, *m_table, m_parser_prefix, true);
 }
 
 IParser
 ParmParse::makeIParser (std::string const& func,
                         Vector<std::string> const& vars) const
 {
-    return pp_make_parser<long long>(func, vars, *m_table, m_parser_prefix);
+    return pp_make_parser<long long>(func, vars, *m_table, m_parser_prefix, true);
 }
 
 }

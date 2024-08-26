@@ -3,6 +3,7 @@
 #include <AMReX_Config.H>
 
 #include <AMReX_BLassert.H>
+#include <AMReX_Enum.H>
 #include <AMReX_INT.H>
 #include <AMReX_IParser.H>
 #include <AMReX_Parser.H>
@@ -1040,13 +1041,40 @@ public:
     /**
      * \brief Query with Parser. If `name` is found, this uses amrex::Parser
      * to parse the entire list of empty space separated values as a single
-     * scalar. The return value indicates whether it's found.
+     * scalar. The return value indicates whether it's found. Note that
+     * queryWithParser will be used recursively for unresolved symbols.
      */
     int queryWithParser (const char* name, int& ref) const;
     int queryWithParser (const char* name, long& ref) const;
     int queryWithParser (const char* name, long long& ref) const;
     int queryWithParser (const char* name, float& ref) const;
     int queryWithParser (const char* name, double& ref) const;
+
+    /**
+     * \brief Query with Parser. The return value indicates whether it's
+     * found. Note that queryWithParser will be used for unresolved
+     * symbols. If the number of elements in the input does not equal to
+     * `nvals`, it's a runtime error.
+     */
+    int queryarrWithParser (const char* name, int nvals, int* ref) const;
+    int queryarrWithParser (const char* name, int nvals, long* ref) const;
+    int queryarrWithParser (const char* name, int nvals, long long* ref) const;
+    int queryarrWithParser (const char* name, int nvals, float* ref) const;
+    int queryarrWithParser (const char* name, int nvals, double* ref) const;
+    template <typename T, std::enable_if_t<std::is_same_v<T,int> ||
+                                           std::is_same_v<T,long> ||
+                                           std::is_same_v<T,long long> ||
+                                           std::is_same_v<T,float> ||
+                                           std::is_same_v<T,double>,int> = 0>
+    int queryarrWithParser (const char* name, int nvals, std::vector<T>& ref) const
+    {
+        if (this->contains(name)) {
+            if (int(ref.size()) < nvals) { ref.resize(nvals); }
+            return this->queryarrWithParser(name, nvals, ref.data());
+        } else {
+            return 0;
+        }
+    }
 
     /**
      * \brief Query with Parser. If `name` is found, this uses amrex::Parser
@@ -1086,6 +1114,42 @@ public:
         }
     }
 
+    /**
+     * \brief Get with Parser. If `name` is not found, it's a runtime
+     * error. If the number of elements does not equal to `nvals`, it's also
+     * a runtime error.
+     */
+    template <typename T, std::enable_if_t<std::is_same_v<T,int> ||
+                                           std::is_same_v<T,long> ||
+                                           std::is_same_v<T,long long> ||
+                                           std::is_same_v<T,float> ||
+                                           std::is_same_v<T,double>,int> = 0>
+    void getarrWithParser (const char* name, int nvals, T* ref) const
+    {
+        int exist = this->queryarrWithParser(name, nvals, ref);
+        if (!exist) {
+            amrex::Error(std::string("ParmParse::getarrWithParser: failed to get ")+name);
+        }
+    }
+
+    /**
+     * \brief Get with Parser. If `name` is not found, it's a runtime
+     * error. If the number of elements does not equal to `nvals`, it's also
+     * a runtime error.
+     */
+    template <typename T, std::enable_if_t<std::is_same_v<T,int> ||
+                                           std::is_same_v<T,long> ||
+                                           std::is_same_v<T,long long> ||
+                                           std::is_same_v<T,float> ||
+                                           std::is_same_v<T,double>,int> = 0>
+    void getarrWithParser (const char* name, int nvals, std::vector<T>& ref) const
+    {
+        int exist = this->queryarrWithParser(name, nvals, ref);
+        if (!exist) {
+            amrex::Error(std::string("ParmParse::getarrWithParser: failed to get ")+name);
+        }
+    }
+
     /*
      * \brief Query two names.
      *
@@ -1115,6 +1179,138 @@ public:
                                  << new_name << " and " << old_name << '\n';
             ParmParse::dumpTable(amrex::ErrorStream());
             amrex::Abort();
+        }
+    }
+
+    /**
+     * \brief. Query enum value using given name.
+     *
+     * Here T is an enum class defined by AMREX_ENUM. The return value
+     * indicates if `name` is found. An exception is thrown, if the found
+     * string associated with the name cannot be converted to an enumerator
+     * (i.e., the string does not match any names in the definition of T).
+     */
+    template <typename T, typename ET = amrex_enum_traits<T>,
+              std::enable_if_t<ET::value,int> = 0>
+    int query (const char* name, T& ref)
+    {
+        std::string s;
+        int exist = this->query(name, s);
+        if (exist) {
+            try {
+                ref = amrex::getEnum<T>(s);
+            } catch (...) {
+                throw;
+            }
+        }
+        return exist;
+    }
+
+    /**
+     * \brief. Get enum value using given name.
+     *
+     * Here T is an enum class defined by AMREX_ENUM. It's a runtime error,
+     * if `name` is not found. An exception is thrown, if the found string
+     * associated with the name cannot be converted to an enumerator (i.e.,
+     * the string does not match any names in the definition of T).
+     */
+    template <typename T, typename ET = amrex_enum_traits<T>,
+              std::enable_if_t<ET::value,int> = 0>
+    void get (const char* name, T& ref)
+    {
+        std::string s;
+        this->get(name, s);
+        try {
+            ref = amrex::getEnum<T>(s);
+        } catch (...) {
+            throw;
+        }
+    }
+
+    //! Query an array of enum values using given name.
+    template <typename T, typename ET = amrex_enum_traits<T>,
+              std::enable_if_t<ET::value,int> = 0>
+    int queryarr (const char* name, std::vector<T>& ref)
+    {
+        std::vector<std::string> s;
+        int exist = this->queryarr(name, s);
+        if (exist) {
+            ref.resize(s.size());
+            for (std::size_t i = 0; i < s.size(); ++i) {
+                ref[i] = amrex::getEnum<T>(s[i]);
+            }
+        }
+        return exist;
+    }
+
+    //! Get an array of enum values using given name.
+    template <typename T, typename ET = amrex_enum_traits<T>,
+              std::enable_if_t<ET::value,int> = 0>
+    void getarr (const char* name, std::vector<T>& ref)
+    {
+        std::vector<std::string> s;
+        this->getarr(name, s);
+        ref.resize(s.size());
+        for (std::size_t i = 0; i < s.size(); ++i) {
+            ref[i] = amrex::getEnum<T>(s[i]);
+        }
+    }
+
+    /**
+     * \brief. Query enum value using given name.
+     *
+     * Here T is an enum class defined by AMREX_ENUM. The return value
+     * indicates if `name` is found. An exception is thrown, if the found
+     * string associated with the name cannot be case-insensitively
+     * converted to an enumerator (i.e., the found string, not `name`, does
+     * not case-insensitively match any names in the definition of T). If
+     * there are multiple matches, the first one is used.
+     */
+    template <typename T, typename ET = amrex_enum_traits<T>,
+              std::enable_if_t<ET::value,int> = 0>
+    int query_enum_case_insensitive (const char* name, T& ref)
+    {
+        std::string s;
+        int exist = this->query(name, s);
+        if (exist) {
+            s = amrex::toLower(s);
+            auto const& enum_names = amrex::getEnumNameStrings<T>();
+            auto found = std::find_if(enum_names.begin(), enum_names.end(),
+                                      [&] (std::string const& ename) {
+                                          return amrex::toLower(ename) == s;
+                                      });
+            if (found != enum_names.end()) {
+                ref = static_cast<T>(std::distance(enum_names.begin(), found));
+            } else {
+                std::string msg("query_enum_case_insensitive(\"");
+                msg.append(name).append("\",").append(amrex::getEnumClassName<T>())
+                    .append("&) failed.");
+                throw std::runtime_error(msg);
+            }
+        }
+        return exist;
+    }
+
+    /**
+     * \brief. Get enum value using given name.
+     *
+     * Here T is an enum class defined by AMREX_ENUM. It's a runtime error,
+     * if `name` is not found. An exception is thrown, if the found string
+     * associated with the name cannot be case-insensitively converted to an
+     * enumerator (i.e., the found string, not `name`, does not
+     * case-insensitively match any names in the definition of T). If there
+     * are multiple matches, the first one is used.
+     */
+    template <typename T, typename ET = amrex_enum_traits<T>,
+              std::enable_if_t<ET::value,int> = 0>
+    void get_enum_case_insensitive (const char* name, T& ref)
+    {
+        int exist = this->query_enum_case_insensitive(name, ref);
+        if (!exist) {
+            std::string msg("get_enum_case_insensitive(\"");
+            msg.append(name).append("\",").append(amrex::getEnumClassName<T>())
+                .append("&) failed.");
+            amrex::Abort(msg);
         }
     }
 
@@ -1155,6 +1351,10 @@ public:
 
     //! Write the contents of the table in ASCII to the ostream.
     static void dumpTable (std::ostream& os, bool prettyPrint = false);
+
+    //! Write the table in a pretty way to the ostream. If there are
+    //! duplicates, only the last one is printed.
+    static void prettyPrintTable (std::ostream& os);
 
     //! Add keys and values from a file to the end of the PP table.
     static void addfile (std::string const& filename);
