@@ -11,10 +11,11 @@
 
 #include <array>
 #include <iosfwd>
-#include <unordered_map>
+#include <optional>
 #include <set>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 namespace amrex {
@@ -26,6 +27,32 @@ template<int dim>
 class IntVectND;
 using IntVect = IntVectND<AMREX_SPACEDIM>;
 class RealVect;
+
+namespace ppdetail {
+    template <class T, class Enable = void>
+    struct ArithmeticOptional_TT : std::false_type {};
+
+    template <class T>
+    struct ArithmeticOptional_TT<T, std::enable_if_t<std::is_arithmetic_v<T>>>
+        : std::true_type
+    {
+        using value_type = T;
+    };
+
+    template <class T>
+    struct ArithmeticOptional_TT<std::optional<T>,
+                                 std::enable_if_t<std::is_arithmetic_v<T>>>
+        : std::true_type
+    {
+        using value_type = T;
+    };
+
+    template <class T>
+    inline constexpr bool IsArithmeticOptional_v = ArithmeticOptional_TT<T>::value;
+
+    template <class T>
+    using underlying_type_t = typename ArithmeticOptional_TT<T>::value_type;
+}
 
 //
 // ParmParse class implements a simple database for the storage and
@@ -60,6 +87,9 @@ class RealVect;
 // '\n's. The "FILE = <filename>" definition is special.  Rather than just
 // adding this entry to the database, it reads the contents of <filename>
 // into the database.
+// For CI/CD workflows and out-of-source tests, the environment variable
+// AMREX_INPUTS_FILE_PREFIX can be set to prefix every FILE = <filename>
+// with a custom path.
 //
 // ParmParse stores all entries in a static table which is built the
 // first time a ParmParse object is constructed (usually in main()).
@@ -1151,6 +1181,29 @@ public:
     }
 
     /*
+     * \brief Evaluate given string as math expression
+     *
+     * For unknown symbols, ParmParse database will be queried.
+     */
+    template <typename T, std::enable_if_t<std::is_same_v<T,int> ||
+                                           std::is_same_v<T,long> ||
+                                           std::is_same_v<T,long long> ||
+                                           std::is_same_v<T,float> ||
+                                           std::is_same_v<T,double>,int> = 0>
+    T eval (std::string const& expr) const
+    {
+        if constexpr (std::is_integral_v<T>) {
+            auto const parser = this->makeIParser(expr, {});
+            auto const exe = parser.compileHost<0>();
+            return static_cast<T>(exe()); // In the future, we might add safety check.
+        } else {
+            auto const parser = this->makeParser(expr, {});
+            auto const exe = parser.compileHost<0>();
+            return static_cast<T>(exe());
+        }
+    }
+
+    /*
      * \brief Query two names.
      *
      * This function queries with `new_name` first. If it's not found, it
@@ -1192,14 +1245,18 @@ public:
      */
     template <typename T, typename ET = amrex_enum_traits<T>,
               std::enable_if_t<ET::value,int> = 0>
-    int query (const char* name, T& ref)
+    int query (const char* name, T& ref, int ival = FIRST) const
     {
         std::string s;
-        int exist = this->query(name, s);
+        int exist = this->query(name, s, ival);
         if (exist) {
             try {
                 ref = amrex::getEnum<T>(s);
             } catch (...) {
+                if (amrex::Verbose() > 0 ) {
+                    amrex::Print() << "amrex::ParmParse::query (input name: "
+                                   << this->prefixedName(name) << "):\n";
+                }
                 throw;
             }
         }
@@ -1216,13 +1273,17 @@ public:
      */
     template <typename T, typename ET = amrex_enum_traits<T>,
               std::enable_if_t<ET::value,int> = 0>
-    void get (const char* name, T& ref)
+    void get (const char* name, T& ref, int ival = FIRST) const
     {
         std::string s;
-        this->get(name, s);
+        this->get(name, s, ival);
         try {
             ref = amrex::getEnum<T>(s);
         } catch (...) {
+            if (amrex::Verbose() > 0 ) {
+                amrex::Print() << "amrex::ParmParse::get (input name:  "
+                               << this->prefixedName(name) << "):\n";
+            }
             throw;
         }
     }
@@ -1230,14 +1291,25 @@ public:
     //! Query an array of enum values using given name.
     template <typename T, typename ET = amrex_enum_traits<T>,
               std::enable_if_t<ET::value,int> = 0>
-    int queryarr (const char* name, std::vector<T>& ref)
+    int queryarr (const char* name,
+                  std::vector<T>& ref,
+                  int start_ix = FIRST,
+                  int num_val = ALL) const
     {
         std::vector<std::string> s;
-        int exist = this->queryarr(name, s);
+        int exist = this->queryarr(name, s, start_ix, num_val);
         if (exist) {
             ref.resize(s.size());
             for (std::size_t i = 0; i < s.size(); ++i) {
-                ref[i] = amrex::getEnum<T>(s[i]);
+                try {
+                    ref[i] = amrex::getEnum<T>(s[i]);
+                }  catch (...) {
+                    if (amrex::Verbose() > 0 ) {
+                        amrex::Print() << "amrex::ParmParse::queryarr (input name:  "
+                                       << this->prefixedName(name) << "):\n";
+                    }
+                    throw;
+                }
             }
         }
         return exist;
@@ -1246,13 +1318,24 @@ public:
     //! Get an array of enum values using given name.
     template <typename T, typename ET = amrex_enum_traits<T>,
               std::enable_if_t<ET::value,int> = 0>
-    void getarr (const char* name, std::vector<T>& ref)
+    void getarr (const char* name,
+                 std::vector<T>& ref,
+                 int start_ix = FIRST,
+                 int num_val = ALL) const
     {
         std::vector<std::string> s;
-        this->getarr(name, s);
+        this->getarr(name, s, start_ix, num_val);
         ref.resize(s.size());
         for (std::size_t i = 0; i < s.size(); ++i) {
-            ref[i] = amrex::getEnum<T>(s[i]);
+            try {
+                ref[i] = amrex::getEnum<T>(s[i]);
+            }  catch (...) {
+                if (amrex::Verbose() > 0 ) {
+                    amrex::Print() << "amrex::ParmParse::getarr (input name:  "
+                                   << this->prefixedName(name) << "):\n";
+                }
+                throw;
+            }
         }
     }
 
@@ -1268,24 +1351,19 @@ public:
      */
     template <typename T, typename ET = amrex_enum_traits<T>,
               std::enable_if_t<ET::value,int> = 0>
-    int query_enum_case_insensitive (const char* name, T& ref)
+    int query_enum_case_insensitive (const char* name, T& ref, int ival = FIRST) const
     {
         std::string s;
-        int exist = this->query(name, s);
+        int exist = this->query(name, s, ival);
         if (exist) {
-            s = amrex::toLower(s);
-            auto const& enum_names = amrex::getEnumNameStrings<T>();
-            auto found = std::find_if(enum_names.begin(), enum_names.end(),
-                                      [&] (std::string const& ename) {
-                                          return amrex::toLower(ename) == s;
-                                      });
-            if (found != enum_names.end()) {
-                ref = static_cast<T>(std::distance(enum_names.begin(), found));
-            } else {
-                std::string msg("query_enum_case_insensitive(\"");
-                msg.append(name).append("\",").append(amrex::getEnumClassName<T>())
-                    .append("&) failed.");
-                throw std::runtime_error(msg);
+            try {
+                ref = amrex::getEnumCaseInsensitive<T>(s);
+            } catch (...) {
+                if (amrex::Verbose() > 0) {
+                    amrex::Print() << "amrex::ParmParse::query_enum_case_insensitive (input name: "
+                                   << this->prefixedName(name) << "):\n";
+                }
+                throw;
             }
         }
         return exist;
@@ -1303,14 +1381,171 @@ public:
      */
     template <typename T, typename ET = amrex_enum_traits<T>,
               std::enable_if_t<ET::value,int> = 0>
-    void get_enum_case_insensitive (const char* name, T& ref)
+    void get_enum_case_insensitive (const char* name, T& ref, int ival = FIRST) const
     {
-        int exist = this->query_enum_case_insensitive(name, ref);
+        int exist = this->query_enum_case_insensitive(name, ref, ival);
         if (!exist) {
             std::string msg("get_enum_case_insensitive(\"");
             msg.append(name).append("\",").append(amrex::getEnumClassName<T>())
                 .append("&) failed.");
             amrex::Abort(msg);
+        }
+    }
+
+    /**
+     * \brief. Query enum value using given name.
+     *
+     * Here T is an enum class defined by AMREX_ENUM. The return value
+     * indicates if `name` is found. An exception is thrown, if the found
+     * string associated with the name cannot be case-insensitively
+     * converted to an enumerator (i.e., the found string, not `name`, does
+     * not case-insensitively match any names in the definition of T). If
+     * there are multiple matches, the first one is used. Characters in
+     * `ignores` will be ignored as if they don't exist in the value part of
+     * ParamParse entries (e.g., `name = value`).
+     */
+    template <typename T, typename ET = amrex_enum_traits<T>,
+              std::enable_if_t<ET::value,int> = 0>
+    int query_enum_sloppy (const char* name, T& ref, std::string_view const& ignores,
+                           int ival = FIRST) const
+    {
+        std::string s;
+        int exist = this->query(name, s, ival);
+        if (exist) {
+            try {
+                s.erase(std::remove_if(s.begin(), s.end(),
+                                       [&] (auto const& c) {
+                                           return ignores.find(c) != std::string_view::npos; }),
+                        s.end());
+                ref = amrex::getEnumCaseInsensitive<T>(s);
+            } catch (...) {
+                if (amrex::Verbose() > 0) {
+                    amrex::Print() << "amrex::ParmParse::query_enum_sloppy (input name: "
+                                   << this->prefixedName(name) << "):\n";
+                }
+                throw;
+            }
+        }
+        return exist;
+    }
+
+    /**
+     * \brief. Get enum value using given name.
+     *
+     * Here T is an enum class defined by AMREX_ENUM. It's a runtime error,
+     * if `name` is not found. An exception is thrown, if the found string
+     * associated with the name cannot be case-insensitively converted to an
+     * enumerator (i.e., the found string, not `name`, does not
+     * case-insensitively match any names in the definition of T). If there
+     * are multiple matches, the first one is used. Characters in `ignores`
+     * will be ignored as if they don't exist in the value part of
+     * ParamParse entries (e.g., `name = value`).
+     */
+    template <typename T, typename ET = amrex_enum_traits<T>,
+              std::enable_if_t<ET::value,int> = 0>
+    void get_enum_sloppy (const char* name, T& ref, std::string_view const& ignores,
+                          int ival = FIRST) const
+    {
+        int exist = this->query_enum_sloppy(name, ref, ignores, ival);
+        if (!exist) {
+            std::string msg("get_enum_sloppy(\"");
+            msg.append(name).append("\",").append(amrex::getEnumClassName<T>())
+                .append("&) failed.");
+            amrex::Abort(msg);
+        }
+    }
+
+    /**
+     * \brief Query T with Parser, but treat the number as double precision
+     * during parsing.
+     *
+     * The final result is cast to T. It may result in a runtime error if
+     * the conversion is not safe. T is either arithmetic type or
+     * std::optional of arithmetic type.
+     */
+    template <typename T, std::enable_if_t<ppdetail::IsArithmeticOptional_v<T>, int> = 0>
+    int queryAsDouble (const char* name, T& ref) const
+    {
+        using value_type = ppdetail::underlying_type_t<T>;
+        double dref;
+        int exist = queryWithParser(name, dref);
+        if (exist) {
+            if (std::is_integral_v<value_type>) {
+                dref = std::round(dref);
+            }
+            auto vref = static_cast<value_type>(dref);
+            if constexpr (std::is_integral_v<value_type> && !std::is_same_v<value_type,bool>) {
+                if (static_cast<double>(vref) != dref) {
+                    amrex::Abort("ParmParse:: queryAsDouble is not safe");
+                }
+            }
+            ref = vref;
+        }
+        return exist;
+    }
+
+    /**
+     * \brief Query T array with Parser, but treat the number as double
+     * precision during parsing.
+     *
+     * The final result is cast to T's. It may result in a runtime error if
+     * the conversion is not safe. T is either arithmetic type or
+     * std::optional of arithmetic type.
+     */
+    template <typename T, std::enable_if_t<ppdetail::IsArithmeticOptional_v<T>, int> = 0>
+    int queryarrAsDouble (const char* name, int nvals, T* ref) const
+    {
+        using value_type = ppdetail::underlying_type_t<T>;
+        std::vector<double> dref(nvals);
+        int exist = queryarrWithParser(name, nvals, dref.data());
+        if (exist) {
+            for (int i = 0; i < nvals; ++i) {
+                if (std::is_integral_v<value_type>) {
+                    dref[i] = std::round(dref[i]);
+                }
+                auto vref = static_cast<value_type>(dref[i]);
+                if constexpr (std::is_integral_v<value_type> && !std::is_same_v<value_type,bool>) {
+                    if (static_cast<double>(vref) != dref[i]) {
+                        amrex::Abort("ParmParse:: queryarrAsDouble is not safe");
+                    }
+                }
+                ref[i] = vref;
+            }
+        }
+        return exist;
+    }
+
+    /**
+     * \brief Get T with Parser, but treat the number as double precision
+     * during parsing.
+     *
+     * The final result is cast to T. It may result in a runtime error if
+     * the conversion is not safe. T is either arithmetic type or
+     * std::optional of arithmetic type.
+     */
+    template <typename T, std::enable_if_t<ppdetail::IsArithmeticOptional_v<T>, int> = 0>
+    void getAsDouble (const char* name, T& ref) const
+    {
+        int exist = this->queryAsDouble(name, ref);
+        if (!exist) {
+            amrex::Error(std::string("ParmParse::getAsDouble: failed to get ")+name);
+        }
+    }
+
+    /**
+     * \brief Get T array with Parser, but treat the number as double
+     * precision during parsing.
+     *
+     * The final result is cast to T's. It may result in a runtime error if
+     * the conversion is not safe. T is either arithmetic type or
+     * std::optional of arithmetic type.
+     */
+    template <typename T, std::enable_if_t<ppdetail::IsArithmeticOptional_v<T>, int> = 0>
+    void getarrAsDouble (const char* name, int nvals, T* ref) const
+    {
+        int exist = this->queryarrAsDouble(name, nvals, ref);
+        if (!exist) {
+            amrex::Error(std::string("ParmParse::getarrAsDouble: failed to get ")+name);
         }
     }
 
@@ -1387,9 +1622,9 @@ public:
 
     static std::string ParserPrefix;
 
-protected:
-
     [[nodiscard]] std::string prefixedName (const std::string_view& str) const;
+
+protected:
 
     std::string m_prefix; // Prefix used in keyword search
     std::string m_parser_prefix; // Prefix used by Parser
