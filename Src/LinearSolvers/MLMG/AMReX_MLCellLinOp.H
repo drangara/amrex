@@ -536,7 +536,11 @@ MLCellLinOpT<MF>::setLevelBC (int amrlev, const MF* a_levelbcdata, const MF* rob
     {
         if (this->needsCoarseDataForBC())
         {
-            AMREX_ALWAYS_ASSERT(!this->hasHiddenDimension());
+            // AMREX_ALWAYS_ASSERT(!this->hasHiddenDimension());
+            if (this->hasHiddenDimension()) {
+                int hidden_dir = this->hiddenDirection();
+                AMREX_ALWAYS_ASSERT(this->m_coarse_data_crse_ratio[hidden_dir] == 1);
+            }
             br_ref_ratio = this->m_coarse_data_crse_ratio.allGT(0) ? this->m_coarse_data_crse_ratio : IntVect(2);
             if (m_crse_sol_br[amrlev] == nullptr && br_ref_ratio.allGT(0))
             {
@@ -1946,8 +1950,6 @@ MLCellLinOpT<MF>::computeVolInv () const
         m_volinv[amrlev].resize(this->NMGLevels(amrlev));
     }
 
-    AMREX_ASSERT(this->m_coarse_fine_bc_type == LinOpBCType::Dirichlet || ! this->hasHiddenDimension());
-
     // We don't need to compute for every level
 
     auto f = [&] (int amrlev, int mglev) {
@@ -2009,11 +2011,11 @@ MLCellLinOpT<MF>::normInf (int amrlev, MF const& mf, bool local) const -> RT
     const int finest_level = this->NAMRLevels() - 1;
     RT norm = RT(0.0);
 #ifdef AMREX_USE_EB
-    if (! mf.isAllRegular()) {
+    const auto *factory = dynamic_cast<EBFArrayBoxFactory const*>(this->Factory(amrlev));
+    if (factory && !factory->isAllRegular()) {
         if constexpr (!std::is_same<MF,MultiFab>()) {
             amrex::Abort("MLCellLinOpT with EB only works with MultiFab");
         } else {
-            const auto *factory = dynamic_cast<EBFArrayBoxFactory const*>(this->Factory(amrlev));
             const MultiFab& vfrac = factory->getVolFrac();
             if (amrlev == finest_level) {
 #ifdef AMREX_USE_GPU
