@@ -12,6 +12,7 @@
 #include <iosfwd>
 #include <cstddef>
 #include <map>
+#include <memory>
 #include <unordered_map>
 
 namespace amrex
@@ -69,7 +70,8 @@ namespace amrex
      */
     [[nodiscard]] BoxArray decompose (Box const& domain, int nboxes,
                                       Array<bool,AMREX_SPACEDIM> const& decomp
-                                      = {AMREX_D_DECL(true,true,true)});
+                                      = {AMREX_D_DECL(true,true,true)},
+                                      bool no_overlap = false);
 
 struct BARef
 {
@@ -848,6 +850,10 @@ public:
     [[nodiscard]] BoxArray simplified () const; // For regular AMR grids only!!!
 
     [[nodiscard]] BATransformer const& transformer () const;
+
+    [[nodiscard]] std::weak_ptr<BARef> getWeakRef () const;
+    [[nodiscard]] std::shared_ptr<BARef> const& getSharedRef () const;
+    std::shared_ptr<BARef>& getSharedRef ();
 
     friend class AmrMesh;
     friend class FabArrayBase;

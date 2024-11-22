@@ -183,7 +183,6 @@ MLCGSolverT<MF>::solve_bicgstab (MF& sol, const MF& rhs, RT eps_rel, RT eps_abs)
         Saxpy(r,  -alpha, v, 0, 0, ncomp, nghost); // r += -alpha * v
 
         rnorm = norm_inf(r);
-        rnorm = norm_inf(r);
 
         if ( verbose > 2 && ParallelDescriptor::IOProcessor() )
         {

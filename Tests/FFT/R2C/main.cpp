@@ -17,7 +17,7 @@ int main (int argc, char* argv[])
                      int n_cell_y = 32;,
                      int n_cell_z = 64);
 
-        AMREX_D_TERM(int max_grid_size_x = 32;,
+        AMREX_D_TERM(int max_grid_size_x = 64;,
                      int max_grid_size_y = 32;,
                      int max_grid_size_z = 32);
 
@@ -70,17 +70,19 @@ int main (int argc, char* argv[])
         auto scaling = Real(1) / Real(geom.Domain().d_numPts());
 
         {
-            cMultiFab cmf(ba,dm,1,0);
+            cMultiFab cmf;
 
             // forward
             {
-                FFT::R2C<Real,FFT::Direction::forward> r2c(geom.Domain());
+                FFT::R2C<Real,FFT::Direction::forward,FFT::DomainStrategy::pencil> r2c(geom.Domain());
+                auto const& [cba, cdm] = r2c.getSpectralDataLayout();
+                cmf.define(cba, cdm, 1, 0);
                 r2c.forward(mf,cmf);
             }
 
             // backward
             {
-                FFT::R2C<Real,FFT::Direction::backward> r2c(geom.Domain());
+                FFT::R2C<Real,FFT::Direction::backward,FFT::DomainStrategy::pencil> r2c(geom.Domain());
                 r2c.backward(cmf,mf2);
             }
 
@@ -103,7 +105,7 @@ int main (int argc, char* argv[])
         mf2.setVal(std::numeric_limits<Real>::max());
 
         { // forward and backward
-            FFT::R2C<Real,FFT::Direction::both> r2c(geom.Domain());
+            FFT::R2C<Real,FFT::Direction::both,FFT::DomainStrategy::slab> r2c(geom.Domain());
             r2c.forwardThenBackward(mf, mf2,
                                     [=] AMREX_GPU_DEVICE (int, int, int, auto& sp)
             {
@@ -113,6 +115,49 @@ int main (int argc, char* argv[])
             MultiFab::Subtract(mf2, mf, 0, 0, 1, 0);
 
             auto error = mf2.norminf();
+            amrex::Print() << "  Expected to be close to zero: " << error << "\n";
+#ifdef AMREX_USE_FLOAT
+            auto eps = 1.e-6f;
+#else
+            auto eps = 1.e-13;
+#endif
+            AMREX_ALWAYS_ASSERT(error < eps);
+        }
+
+        {
+            Real error = 0;
+            BaseFab<GpuComplex<Real>> cfab;
+            for (MFIter mfi(mf); mfi.isValid(); ++mfi)
+            {
+                auto& fab = mf[mfi];
+                auto& fab2 = mf2[mfi];
+                Box const& box = fab.box();
+                {
+                    FFT::LocalR2C<Real,FFT::Direction::both> fft(box.length());
+                    Box cbox(IntVect(0), fft.spectralSize() - 1);
+                    cfab.resize(cbox);
+                    fft.forward(fab.dataPtr(), cfab.dataPtr());
+                    fft.backward(cfab.dataPtr(), fab2.dataPtr());
+                    auto fac = fft.scalingFactor();
+                    fab2.template xpay<RunOn::Device>(-fac, fab, box, box, 0, 0, 1);
+                    auto e = fab2.template norm<RunOn::Device>(0);
+                    error = std::max(e,error);
+                }
+                {
+                    FFT::LocalR2C<Real,FFT::Direction::forward> fft(box.length());
+                    fft.forward(fab.dataPtr(), cfab.dataPtr());
+                }
+                {
+                    FFT::LocalR2C<Real,FFT::Direction::backward> fft(box.length());
+                    fft.backward(cfab.dataPtr(), fab2.dataPtr());
+                    auto fac = fft.scalingFactor();
+                    fab2.template xpay<RunOn::Device>(-fac, fab, box, box, 0, 0, 1);
+                    auto e = fab2.template norm<RunOn::Device>(0);
+                    error = std::max(e,error);
+                }
+            }
+
+            ParallelDescriptor::ReduceRealMax(error);
             amrex::Print() << "  Expected to be close to zero: " << error << "\n";
 #ifdef AMREX_USE_FLOAT
             auto eps = 1.e-6f;

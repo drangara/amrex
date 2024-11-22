@@ -7,9 +7,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check_changes:
+    uses: ./.github/workflows/check_changes.yml
+
   tests-oneapi-sycl:
     name: oneAPI SYCL [tests]
     runs-on: ubuntu-latest
+    needs: check_changes
+    if: needs.check_changes.outputs.has_non_docs_changes == 'true'
     steps:
     - uses: actions/checkout@v4
     - name: Dependencies
@@ -24,11 +29,8 @@ jobs:
         restore-keys: |
              ccache-${{ github.workflow }}-${{ github.job }}-git-
     - name: Build & Install
-      # /tmp/icpx-2d34de0e47/global_vars-header-4390fb.h:25:36: error: zero size arrays are an extension [-Werror,-Wzero-length-array]
-      #    25 | const char* const kernel_names[] = {
-      #       |                                    ^
-      # 1 error generated.
-      env: {CXXFLAGS: "-fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual -Wextra-semi -Wunreachable-code -Wnon-virtual-dtor -Wno-zero-length-array"}
+      # Warnings in 2025.0: unused-variable, shadow
+      env: {CXXFLAGS: "-fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual -Wextra-semi -Wunreachable-code -Wnon-virtual-dtor -Wno-unused-variable -Wno-shadow"}
       run: |
         export CCACHE_COMPRESS=1
         export CCACHE_COMPRESSLEVEL=10
@@ -59,6 +61,8 @@ jobs:
   tests-oneapi-sycl-eb:
     name: oneAPI SYCL [tests w/ EB]
     runs-on: ubuntu-latest
+    needs: check_changes
+    if: needs.check_changes.outputs.has_non_docs_changes == 'true'
     steps:
     - uses: actions/checkout@v4
     - name: Dependencies
@@ -73,11 +77,8 @@ jobs:
         restore-keys: |
              ccache-${{ github.workflow }}-${{ github.job }}-git-
     - name: Build & Install
-      # /tmp/icpx-2d34de0e47/global_vars-header-4390fb.h:25:36: error: zero size arrays are an extension [-Werror,-Wzero-length-array]
-      #    25 | const char* const kernel_names[] = {
-      #       |                                    ^
-      # 1 error generated.
-      env: {CXXFLAGS: "-fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual -Wextra-semi -Wunreachable-code -Wnon-virtual-dtor -Wno-zero-length-array"}
+      # Warnings in 2025.0: unused-variable, shadow
+      env: {CXXFLAGS: "-fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual -Wextra-semi -Wunreachable-code -Wnon-virtual-dtor -Wno-unused-variable -Wno-shadow"}
       run: |
         export CCACHE_COMPRESS=1
         export CCACHE_COMPRESSLEVEL=10
@@ -107,6 +108,8 @@ jobs:
   tests-oneapi-sycl-eb-nvidia:
     name: oneAPI SYCL for Nvidia GPUs [tests w/ EB]
     runs-on: ubuntu-latest
+    needs: check_changes
+    if: false && needs.check_changes.outputs.has_non_docs_changes == 'true'
     steps:
     - uses: actions/checkout@v4
     - name: Dependencies
@@ -124,7 +127,8 @@ jobs:
         restore-keys: |
              ccache-${{ github.workflow }}-${{ github.job }}-git-
     - name: Build & Install
-      env: {CXXFLAGS: "-fsycl -fsycl-targets=nvptx64-nvidia-cuda -Xsycl-target-backend --offload-arch=sm_80 -fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual -Wextra-semi -Wunreachable-code -Wnon-virtual-dtor"}
+      # Warnings in 2025.0: unused-variable, shadow
+      env: {CXXFLAGS: "-fsycl -fsycl-targets=nvptx64-nvidia-cuda -Xsycl-target-backend --offload-arch=sm_80 -fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual -Wextra-semi -Wunreachable-code -Wnon-virtual-dtor -Wno-unused-variable -Wno-shadow"}
       run: |
         export CCACHE_COMPRESS=1
         export CCACHE_COMPRESSLEVEL=10
@@ -156,6 +160,8 @@ jobs:
   no-tests-oneapi-sycl-amd:
     name: oneAPI SYCL for AMD GPUs
     runs-on: ubuntu-20.04
+    needs: check_changes
+    if: false && needs.check_changes.outputs.has_non_docs_changes == 'true'
     steps:
     - uses: actions/checkout@v4
     - name: Dependencies
@@ -173,7 +179,8 @@ jobs:
         restore-keys: |
              ccache-${{ github.workflow }}-${{ github.job }}-git-
     - name: Build & Install
-      env: {CXXFLAGS: "-fsycl -fsycl-targets=amdgcn-amd-amdhsa -Xsycl-target-backend --offload-arch=gfx90a -fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual -Wextra-semi -Wunreachable-code -Wnon-virtual-dtor"}
+      # Warnings in 2025.0: unused-variable, shadow
+      env: {CXXFLAGS: "-fsycl -fsycl-targets=amdgcn-amd-amdhsa -Xsycl-target-backend --offload-arch=gfx90a -fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual -Wextra-semi -Wunreachable-code -Wnon-virtual-dtor -Wno-unused-variable -Wno-shadow"}
       run: |
         export CCACHE_COMPRESS=1
         export CCACHE_COMPRESSLEVEL=10
@@ -203,6 +210,8 @@ jobs:
   tests-icc:
     name: ICC [tests]
     runs-on: ubuntu-latest
+    needs: check_changes
+    if: needs.check_changes.outputs.has_non_docs_changes == 'true'
     steps:
     - uses: actions/checkout@v4
     - name: Dependencies

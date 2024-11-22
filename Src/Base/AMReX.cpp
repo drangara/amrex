@@ -14,6 +14,10 @@
 #include <AMReX_Geometry.H>
 #include <AMReX_Gpu.H>
 
+#ifdef AMREX_USE_FFT
+#include <AMReX_FFT.H>
+#endif
+
 #ifdef AMREX_USE_HYPRE
 #include <_hypre_utilities.h>
 #ifdef AMREX_USE_CUDA
@@ -302,20 +306,20 @@ amrex::Assert_host (const char* EX, const char* file, int line, const char* msg)
 
 namespace
 {
-    std::stack<amrex::PTR_TO_VOID_FUNC> The_Finalize_Function_Stack;
-    std::stack<amrex::PTR_TO_VOID_FUNC> The_Initialize_Function_Stack;
+    std::stack<std::function<void()>> The_Finalize_Function_Stack;
+    std::stack<std::function<void()>> The_Initialize_Function_Stack;
 }
 
 void
-amrex::ExecOnFinalize (PTR_TO_VOID_FUNC fp)
+amrex::ExecOnFinalize (std::function<void()> f)
 {
-    The_Finalize_Function_Stack.push(fp);
+    The_Finalize_Function_Stack.push(std::move(f));
 }
 
 void
-amrex::ExecOnInitialize (PTR_TO_VOID_FUNC fp)
+amrex::ExecOnInitialize (std::function<void()> f)
 {
-    The_Initialize_Function_Stack.push(fp);
+    The_Initialize_Function_Stack.push(std::move(f));
 }
 
 amrex::AMReX*
@@ -391,7 +395,7 @@ amrex::Initialize (int& argc, char**& argv, bool build_parm_parse,
         //
         // Call the registered function.
         //
-        (*The_Initialize_Function_Stack.top())();
+        The_Initialize_Function_Stack.top()();
         //
         // And then remove it from the stack.
         //
@@ -655,6 +659,10 @@ amrex::Initialize (int& argc, char**& argv, bool build_parm_parse,
     AsyncOut::Initialize();
     VectorGrowthStrategy::Initialize();
 
+#ifdef AMREX_USE_FFT
+    FFT::Initialize();
+#endif
+
 #ifdef AMREX_USE_EB
     EB2::Initialize();
 #endif
@@ -756,7 +764,7 @@ amrex::Finalize (amrex::AMReX* pamrex)
         //
         // Call the registered function.
         //
-        (*The_Finalize_Function_Stack.top())();
+        The_Finalize_Function_Stack.top()();
         //
         // And then remove it from the stack.
         //
