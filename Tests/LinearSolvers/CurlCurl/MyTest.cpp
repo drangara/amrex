@@ -135,7 +135,7 @@ MyTest::initData ()
 
     for (int idim = 0; idim < 3; ++idim) {
         IntVect itype(1);
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM < 3)
         if (idim < AMREX_SPACEDIM)
 #endif
         {

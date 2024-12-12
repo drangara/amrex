@@ -109,7 +109,11 @@ public:
 
 // public for cuda
 
+#if (AMREX_SPACEDIM > 1)
     void smooth4 (int amrlev, int mglev, MF& sol, MF const& rhs, int color) const;
+#else
+    void smooth1D (int amrlev, int mglev, MF& sol, MF const& rhs, int color) const;
+#endif
 
     void compresid (int amrlev, int mglev, MF& resid, MF const& b) const;
 
@@ -130,8 +134,10 @@ private:
     Array<IntVect,3> m_etype
 #if (AMREX_SPACEDIM == 3)
          {IntVect(0,1,1), IntVect(1,0,1), IntVect(1,1,0)};
-#else
+#elif (AMREX_SPACEDIM == 2)
          {IntVect(0,1), IntVect(1,0), IntVect(1,1)};
+#else
+         {IntVect(0), IntVect(1), IntVect(1)};
 #endif
 
     mutable Vector<Vector<Array<std::unique_ptr<iMultiFab>,3>>> m_dotmask;
