@@ -60,6 +60,7 @@
 #include <memory>
 #include <numeric>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -768,6 +769,24 @@ public:
                      const Vector<std::string>& real_comp_names = Vector<std::string>(),
                      const Vector<std::string>& int_comp_names = Vector<std::string>()) const;
 
+    /**
+     * \brief Writes a particle checkpoint to file, suitable for restarting.
+     *        This version allows some components to be toggled off, if they
+     *        don't need to be stored in the chk file.
+     *
+     * \param dir The base directory into which to write (i.e. "plt00000")
+     * \param name The name of the sub-directory for this particle type (i.e. "Tracer")
+      * \param write_real_comp for each real component, whether or not we include that component in the file
+      * \param write_int_comp for each integer component, whether or not we include that component in the file
+     * \param real_comp_names vector of real component names
+     * \param int_comp_names vector of int component names
+     */
+    void Checkpoint (const std::string& dir, const std::string& name,
+                     const Vector<int>& write_real_comp,
+                     const Vector<int>& write_int_comp,
+                     const Vector<std::string>& real_comp_names,
+                     const Vector<std::string>& int_comp_names) const;
+
      /**
       * \brief Writes particle data to disk in the AMReX native format.
       *
@@ -1175,7 +1194,7 @@ public:
     ParticleTileType& DefineAndReturnParticleTile (int lev, const Iterator& iter)
     {
         auto index = std::make_pair(iter.index(), iter.LocalTileIndex());
-        m_particles[lev][index].define(NumRuntimeRealComps(), NumRuntimeIntComps());
+        m_particles[lev][index].define(NumRuntimeRealComps(), NumRuntimeIntComps(), &m_soa_rdata_names, &m_soa_idata_names);
         return ParticlesAt(lev, iter);
     }
 
@@ -1251,6 +1270,11 @@ public:
 
     void AddRealComp (std::string const & name, int communicate=1)
     {
+        // names must be unique
+        auto const it = std::find(m_soa_rdata_names.begin(), m_soa_rdata_names.end(), name);
+        if (it != m_soa_rdata_names.end()) {
+            throw std::runtime_error("AddRealComp: name '" + name + "' is already present in the SoA.");
+        }
         m_soa_rdata_names.push_back(name);
 
         m_runtime_comps_defined = true;
@@ -1279,6 +1303,11 @@ public:
 
     void AddIntComp (std::string const & name, int communicate=1)
     {
+        // names must be unique
+        auto const it = std::find(m_soa_idata_names.begin(), m_soa_idata_names.end(), name);
+        if (it != m_soa_idata_names.end()) {
+            throw std::runtime_error("AddIntComp: name '" + name + "' is already present in the SoA.");
+        }
         m_soa_idata_names.push_back(name);
 
         m_runtime_comps_defined = true;
@@ -1424,6 +1453,38 @@ public:
     /** Get the names for the int SoA components **/
     std::vector<std::string> GetIntSoANames () const {return m_soa_idata_names;}
 
+    /** Check if a container has a ParticleReal component
+     *
+     * @param name component name to check
+     * @return true if found, else false
+     */
+    bool HasRealComp (std::string const & name);
+
+    /** Check if a container has an Integer component
+     *
+     * @param name component name to check
+     * @return true if found, else false
+     */
+    bool HasIntComp (std::string const & name);
+
+    /** Get the ParticleReal SoA index of a component
+     *
+     * This throws a runtime exception if the component does not exist.
+     *
+     * @param name component name to query index for
+     * @return zero-based index
+     */
+    int GetRealCompIndex (std::string const & name);
+
+    /** Get the Integer SoA index of a component
+     *
+     * This throws a runtime exception if the component does not exist.
+     *
+     * @param name component name to query index for
+     * @return zero-based index
+     */
+    int GetIntCompIndex (std::string const & name);
+
 protected:
 
     template <class RTYPE>
@@ -1468,6 +1529,7 @@ using ParticleContainer = ParticleContainer_impl<Particle<T_NStructReal, T_NStru
 template <int T_NArrayReal, int T_NArrayInt, template<class> class Allocator=DefaultAllocator, class CellAssignor=DefaultAssignor>
 using ParticleContainerPureSoA = ParticleContainer_impl<SoAParticle<T_NArrayReal, T_NArrayInt>, T_NArrayReal, T_NArrayInt, Allocator, CellAssignor>;
 
+}
 
 #include "AMReX_ParticleInit.H"
 #include "AMReX_ParticleContainerI.H"
@@ -1476,7 +1538,5 @@ using ParticleContainerPureSoA = ParticleContainer_impl<SoAParticle<T_NArrayReal
 #ifdef AMREX_USE_HDF5
 #include "AMReX_ParticleHDF5.H"
 #endif
-
-}
 
 #endif /*_PARTICLES_H_*/
