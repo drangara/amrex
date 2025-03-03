@@ -199,9 +199,7 @@ public:
     //!  of a level hierarchy. Must be properly initialized later.
     ParticleContainer_impl ()
       :
-      ParticleContainerBase(),
-      h_redistribute_real_comp(AMREX_SPACEDIM + NStructReal + NArrayReal, true),
-      h_redistribute_int_comp(2 + NStructInt + NArrayInt, true)
+      ParticleContainerBase()
     {
         Initialize ();
     }
@@ -215,9 +213,7 @@ public:
     //!
     ParticleContainer_impl (ParGDBBase* gdb)
         :
-        ParticleContainerBase(gdb),
-        h_redistribute_real_comp(AMREX_SPACEDIM + NStructReal + NArrayReal, true),
-        h_redistribute_int_comp(2 + NStructInt + NArrayInt, true)
+        ParticleContainerBase(gdb)
     {
         Initialize ();
         ParticleContainer_impl::reserveData();
@@ -235,9 +231,7 @@ public:
                             const DistributionMapping & dmap,
                             const BoxArray            & ba)
         :
-        ParticleContainerBase(geom, dmap, ba),
-        h_redistribute_real_comp(AMREX_SPACEDIM + NStructReal + NArrayReal, true),
-        h_redistribute_int_comp(2 + NStructInt + NArrayInt, true)
+        ParticleContainerBase(geom, dmap, ba)
     {
         Initialize ();
         ParticleContainer_impl::reserveData();
@@ -258,9 +252,7 @@ public:
                             const Vector<BoxArray>            & ba,
                             const Vector<int>                 & rr)
         :
-        ParticleContainerBase(geom, dmap, ba, rr),
-        h_redistribute_real_comp(AMREX_SPACEDIM + NStructReal + NArrayReal, true),
-        h_redistribute_int_comp(2 + NStructInt + NArrayInt, true)
+        ParticleContainerBase(geom, dmap, ba, rr)
     {
         Initialize ();
         ParticleContainer_impl::reserveData();
@@ -280,9 +272,7 @@ public:
                             const Vector<BoxArray>            & ba,
                             const Vector<IntVect>             & rr)
         :
-        ParticleContainerBase(geom, dmap, ba, rr),
-        h_redistribute_real_comp(AMREX_SPACEDIM + NStructReal + NArrayReal, true),
-        h_redistribute_int_comp(2 + NStructInt + NArrayInt, true)
+        ParticleContainerBase(geom, dmap, ba, rr)
     {
         Initialize ();
         ParticleContainer_impl::reserveData();
@@ -1374,11 +1364,28 @@ public:
     {
         ContainerLike<NewAllocator> tmp(m_gdb);
 
+        std::vector<std::string> const real_names = this->GetRealSoANames();
+        std::vector<std::string> real_ct_names(NArrayReal);
+        for (int ic = 0; ic < NArrayReal; ++ic) { real_ct_names.at(ic) = real_names[ic]; }
+
+        std::vector<std::string> const int_names = this->GetIntSoANames();
+        std::vector<std::string> int_ct_names(NArrayInt);
+        for (int ic = 0; ic < NArrayInt; ++ic) { int_ct_names.at(ic) = int_names[ic]; }
+
+        tmp.SetSoACompileTimeNames(real_ct_names, int_ct_names);
+
         // add runtime real comps to tmp
-        for (int ic = 0; ic < this->NumRuntimeRealComps(); ++ic) { tmp.AddRealComp(false); }
+        for (int ic = 0; ic < this->NumRuntimeRealComps(); ++ic) {
+            tmp.AddRealComp(real_names.at(ic + NArrayReal));
+        }
 
         // add runtime int comps to tmp
-        for (int ic = 0; ic < this->NumRuntimeIntComps(); ++ic) { tmp.AddIntComp(false); }
+        for (int ic = 0; ic < this->NumRuntimeIntComps(); ++ic) {
+            tmp.AddIntComp(int_names.at(ic + NArrayInt));
+        }
+
+        tmp.h_redistribute_real_comp = h_redistribute_real_comp;
+        tmp.h_redistribute_int_comp = h_redistribute_int_comp;
 
         return tmp;
     }

@@ -1,3 +1,103 @@
+# 25.03
+
+  -- Make Parser CI less sensitive to roundoff errors (#4321)
+
+  -- FFT: Add raw pointer interfaces (#4345)
+
+  -- Update SUNDIALS GNUMake (#4344)
+
+  -- Change FFTW rapth flag (#4343)
+
+  -- Copy comm flags in make_alike (#4341)
+
+  -- GPU Mapping (#4326)
+
+  -- Fix FillRandomNormal for odd number of length (#4338)
+
+  -- Fix new bug in pure soa communication (#4337)
+
+  -- Expose MLCellLinOP::setInterpBndryHalfWidth for non-hypre cases (#4334)
+
+  -- GMRESMLMG: Support Multi-level composite solve (#4271)
+
+  -- Fix optional component communication for pure SoA particles (#4333)
+
+  -- SYCL: fix '-flink-huge-device-code' compiler flag (#4332)
+
+  -- compile MLCurlCurl for 1D in cmake (#4331)
+
+  -- GitHub Runner: ubuntu-20.04 -> ubuntu-24.04 (#4330)
+
+  -- FFT: Support complex to complex transforms (#4329)
+
+  -- FFT: Add batch support (#4327)
+
+  -- Fix recursion-related nvlink warning in RandomGamma (#4324)
+
+  -- Fix a number of tests for GPU (#4323)
+
+  -- Fix: Names in `PC::make_alike` (#4322)
+
+  -- Enable GPU-aware MPI by default (#4318)
+
+  -- Preparation for deprecation of `__AMDGCN_WAVEFRONT_SIZE` (#4311)
+
+  -- Speed up CUDA Toolkit installation in Windows CI (#4310)
+
+  -- GNU Make: Remove old machines like summit and cori (#4312)
+
+# 25.02
+
+  -- SpMatrix: Add constructor for CSR format (#4316)
+
+  -- Modify warning messages about number of GPUs (#4315)
+
+  -- Fix Doxygen with default void std::enable_if_t (#4314)
+
+  -- CUDA On Windows (MSVC) (#4309)
+
+  -- Fix includes (#4308)
+
+  -- Fix CMake Compiler Flag Summary: ID Regex Matching (#4272)
+
+  -- Use std::move (#4307)
+
+  -- ParaView: AnyLocation -> Any Location (#4306)
+
+  -- Documentation: Fix malformed table (#4305)
+
+  -- PC: SoA Name Helpers (#4300)
+
+  -- PC: Ensure Uniqueness of SoA Names (#4299)
+
+  -- PC Names: Same Type, Multiple Vars/Instances (#4302)
+
+  -- Use bigint in HypreSolver test (#4297)
+
+  -- CI: Remove ICC/ICPC (Compiler Classic) (#4303)
+
+  -- Fix: PC Tile Copy w/ Names (#4298)
+
+  -- Add argument for NeighborParticleContainer::Redistribute (#4294)
+
+  -- Fix `AMReX::FFTW` Once (#4293)
+
+  -- Make ParmParse Parser more robust (#4291)
+
+  -- std::clamp -> amrex::Clamp (#4292)
+
+  -- Fix a memory leak in Open BC solver (#4290)
+
+  -- Make using The_Comms_Arena() for particle communication opt-in (#4286)
+
+  -- FFTW: Windows, OMP & Floats (#4282)
+
+  -- SmallMatrix: Assert Lower Bound Index (#4283)
+
+  -- ParmParse `queryAddWithParser` No Const (#4285)
+
+  -- Fix bug in EBData::randomPointOnEB (#4277)
+
 # 25.01
 
   -- Make FFT safe for slabs (#4268)

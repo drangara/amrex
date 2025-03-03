@@ -169,7 +169,7 @@ void packParticleIDs (I* idata, const P& p, bool is_checkpoint) noexcept
 }
 
 template <class PC>
-std::enable_if_t<RunOnGpu<typename PC::template AllocatorType<int>>::value>
+std::enable_if_t<RunOnGpu<typename PC::template AllocatorType<int>>::value, void>
 packIOData (Vector<int>& idata, Vector<ParticleReal>& rdata, const PC& pc, int lev, int grid,
             const Vector<int>& write_real_comp, const Vector<int>& write_int_comp,
             const Vector<std::map<std::pair<int, int>, typename PC::IntVector>>& particle_io_flags,
@@ -279,7 +279,7 @@ packIOData (Vector<int>& idata, Vector<ParticleReal>& rdata, const PC& pc, int l
 }
 
 template <class PC>
-std::enable_if_t<!RunOnGpu<typename PC::template AllocatorType<int>>::value>
+std::enable_if_t<!RunOnGpu<typename PC::template AllocatorType<int>>::value, void>
 packIOData (Vector<int>& idata, Vector<ParticleReal>& rdata, const PC& pc, int lev, int grid,
             const Vector<int>& write_real_comp, const Vector<int>& write_int_comp,
             const Vector<std::map<std::pair<int, int>, typename PC::IntVector>>& particle_io_flags,
